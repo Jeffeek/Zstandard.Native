@@ -1,5 +1,51 @@
 <Project>
 
+  <!-- ============================================================ -->
+  <!-- Versioning. The release scripts override VersionPrefix and    -->
+  <!-- VersionSuffix on the command line. Defaults below apply for   -->
+  <!-- local dev builds.                                              -->
+  <!-- ============================================================ -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>dev</VersionSuffix>
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+  </PropertyGroup>
+
+  <!-- ============================================================ -->
+  <!-- Centralized NuGet metadata. Applied only to packable projects -->
+  <!-- so PackageId / RepositoryUrl don't bleed into the test and    -->
+  <!-- benchmark projects (which would create an ambiguous-project   -->
+  <!-- error against the ProjectReference).                          -->
+  <!-- ============================================================ -->
+  <PropertyGroup Condition="'$(IsPackable)' != 'false'">
+    <Authors>Zstandard.Native contributors</Authors>
+    <Company>Jeffeek</Company>
+    <Product>Zstandard.Native</Product>
+    <Copyright>Copyright (c) Zstandard.Native contributors</Copyright>
+    <PackageProjectUrl>https://github.com/Jeffeek/Zstandard.Native</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Jeffeek/Zstandard.Native</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>zstd;zstandard;compression;native;aot;intrinsics;avx10;sve</PackageTags>
+    <Description>Ultra-fast, AOT-safe Zstandard (zstd) wrapper for .NET 8 and .NET 10 with Vector512 / AVX10 / SVE accelerated paths and zero-allocation Span APIs.</Description>
+    <PackageReadmeFile Condition="Exists('$(MSBuildThisFileDirectory)README.md')">README.md</PackageReadmeFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!-- README is shipped only when present and only for the packable lib. -->
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)README.md') AND '$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <!-- ============================================================ -->
+  <!-- Compiler / language defaults.                                 -->
+  <!-- ============================================================ -->
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -8,14 +54,25 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
-    <!-- AOT / Trim safety -->
+    <!-- Security: opt in to NuGetAudit and fail the build on any advisory. -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <!-- ============================================================ -->
+  <!-- AOT / Trim safety enforcement for library projects.           -->
+  <!-- Sample and test subtrees override these in their own props.   -->
+  <!-- ============================================================ -->
+  <PropertyGroup>
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <EnableAotAnalyzer>true</EnableAotAnalyzer>
     <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 
-    <!-- Promote AOT/trim/single-file warnings to errors -->
+    <!-- Promote AOT/trim/single-file warnings to errors. -->
     <WarningsAsErrors>$(WarningsAsErrors);IL2026;IL2027;IL2028;IL2029;IL2030;IL2031;IL2032;IL2033;IL2034;IL2035;IL2036;IL2037;IL2038;IL2039;IL2040;IL2041;IL2042;IL2043;IL2044;IL2045;IL2046;IL2047;IL2048;IL2049;IL2050;IL2055;IL2056;IL2057;IL2058;IL2059;IL2060;IL2061;IL2062;IL2063;IL2064;IL2065;IL2066;IL2067;IL2068;IL2069;IL2070;IL2071;IL2072;IL2073;IL2074;IL2075;IL2076;IL2077;IL2078;IL2079;IL2080;IL2081;IL2082;IL2083;IL2084;IL2085;IL2086;IL2087;IL2088;IL2089;IL2090;IL2091;IL2092;IL2093;IL2094;IL2095;IL2096;IL2097;IL2098;IL2099;IL2100;IL2101;IL2102;IL2103;IL2104;IL2105;IL2106;IL2107;IL2108;IL2109;IL2110;IL2111;IL2112;IL2113;IL2114;IL2115;IL2116;IL2117;IL2118;IL2119;IL2120;IL2121;IL2122;IL3000;IL3001;IL3002;IL3003;IL3050;IL3051;IL3052;IL3053;IL3054;IL3055;IL3056</WarningsAsErrors>
   </PropertyGroup>
 

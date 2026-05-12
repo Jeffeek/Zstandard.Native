@@ -11,6 +11,7 @@
     <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors></WarningsAsErrors>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>

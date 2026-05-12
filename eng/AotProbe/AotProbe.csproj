@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- This project is consumed only by the AOT validation gate. It is OUTSIDE
+       the solution's normal globs (under eng/) so it can pick up the locally
+       packed Zstandard.Native nupkg from a temporary feed without polluting
+       the main restore graph. -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <StripSymbols>true</StripSymbols>
+    <TrimMode>full</TrimMode>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Any AOT/trim warning here means the consumer experience is broken. -->
+    <WarningsAsErrors>$(WarningsAsErrors);IL2026;IL2046;IL2050;IL2055;IL2057;IL2058;IL2059;IL2060;IL2070;IL2071;IL2072;IL2075;IL2080;IL2087;IL2091;IL2092;IL2095;IL2096;IL2098;IL3050;IL3051;IL3052;IL3053;IL3054;IL3055;IL3056</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Version is set on the dotnet CLI by the workflow. -->
+    <PackageReference Include="Zstandard.Native" Version="$(ZstandardNativeVersion)" />
+  </ItemGroup>
+
+</Project>
