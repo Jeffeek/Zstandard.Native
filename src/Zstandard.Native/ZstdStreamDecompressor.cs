@@ -34,7 +34,7 @@ public sealed class ZstdStreamDecompressor : IDisposable
         _handle = ZstdDecompressionContextHandle.Create();
         try
         {
-            if (windowLogMax is int wlm)
+            if (windowLogMax is { } wlm)
             {
                 var code = ZstdNative.ZSTD_DCtx_setParameter(
                     _handle.DangerousGet(), ZstdNative.ZSTD_d_windowLogMax, wlm);

@@ -17,6 +17,9 @@
     <IsAotCompatible>true</IsAotCompatible>
     <IsTrimmable>true</IsTrimmable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Opt out of CPM: this project consumes the just-packed Zstandard.Native
+         with a dynamic version expression that's resolved by the publish workflow. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <!-- Any AOT/trim warning here means the consumer experience is broken. -->
     <WarningsAsErrors>$(WarningsAsErrors);IL2026;IL2046;IL2050;IL2055;IL2057;IL2058;IL2059;IL2060;IL2070;IL2071;IL2072;IL2075;IL2080;IL2087;IL2091;IL2092;IL2095;IL2096;IL2098;IL3050;IL3051;IL3052;IL3053;IL3054;IL3055;IL3056</WarningsAsErrors>
   </PropertyGroup>

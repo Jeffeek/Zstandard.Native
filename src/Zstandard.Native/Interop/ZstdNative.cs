@@ -108,6 +108,7 @@ internal static partial class ZstdNative
 }
 
 [StructLayout(LayoutKind.Sequential)]
+// ReSharper disable once InconsistentNaming
 internal unsafe struct ZSTD_inBuffer
 {
     public void* src;
@@ -116,6 +117,7 @@ internal unsafe struct ZSTD_inBuffer
 }
 
 [StructLayout(LayoutKind.Sequential)]
+// ReSharper disable once InconsistentNaming
 internal unsafe struct ZSTD_outBuffer
 {
     public void* dst;
