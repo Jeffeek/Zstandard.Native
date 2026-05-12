@@ -31,8 +31,8 @@ jobs:
           - { os: linux,   arch: x64,   runner: ubuntu-latest,    rid: linux-x64   }
           - { os: linux,   arch: arm64, runner: ubuntu-24.04-arm, rid: linux-arm64 }
           - { os: windows, arch: x64,   runner: windows-latest,   rid: win-x64     }
-          - { os: macos,   arch: x64,   runner: macos-13,         rid: osx-x64     }
-          - { os: macos,   arch: arm64, runner: macos-14,         rid: osx-arm64   }
+          - { os: macos,   arch: x64,   runner: macos-15-intel,   rid: osx-x64     }
+          - { os: macos,   arch: arm64, runner: macos-15,         rid: osx-arm64   }
 
     steps:
       - uses: actions/checkout@v4
