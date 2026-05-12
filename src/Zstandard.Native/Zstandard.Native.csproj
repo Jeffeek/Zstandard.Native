@@ -5,6 +5,10 @@
     <RootNamespace>Zstandard.Native</RootNamespace>
     <AssemblyName>Zstandard.Native</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: missing XML on internal-only partial P/Invoke files is noise; we
+         document the public API but not every LibraryImport stub. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
 </Project>

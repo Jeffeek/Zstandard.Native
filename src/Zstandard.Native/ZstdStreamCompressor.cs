@@ -6,10 +6,26 @@ using Zstandard.Native.SafeHandles;
 namespace Zstandard.Native;
 
 /// <summary>
-/// Streaming Zstd compressor wrapping a native <c>ZSTD_CCtx</c>. Reusable across
+/// Streaming Zstandard compressor wrapping a native <c>ZSTD_CCtx</c>. Reusable across
 /// independent frames via <see cref="Reset"/>. Internal scratch buffers come from
 /// <see cref="ArrayPool{T}.Shared"/> and are returned in <see cref="Dispose"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <b>Thread safety:</b> instances are <i>not</i> thread-safe. The wrapped
+/// <c>ZSTD_CCtx</c> carries mutable streaming state, so concurrent calls into
+/// <see cref="Compress(ReadOnlySpan{byte}, Span{byte}, ZstdEndDirective)"/> or
+/// <see cref="Reset"/> on the same instance will corrupt the frame. Create one
+/// compressor per thread, or guard a shared instance with your own lock.
+/// </para>
+/// <para>
+/// <b>Disposal:</b> always dispose to release the native context and return the
+/// pooled scratch buffer. A finalizer on the underlying <see cref="SafeHandle"/>
+/// guarantees the native pointer is freed even if <see cref="Dispose"/> is missed,
+/// but the pooled buffer will be lost to GC and the leak will surface as ArrayPool
+/// pressure under load.
+/// </para>
+/// </remarks>
 public sealed class ZstdStreamCompressor : IDisposable
 {
     private readonly ZstdCompressionContextHandle _handle;

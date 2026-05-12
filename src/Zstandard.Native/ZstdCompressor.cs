@@ -5,8 +5,21 @@ using Zstandard.Native.Interop;
 namespace Zstandard.Native;
 
 /// <summary>
-/// One-shot, zero-allocation Zstd compressor over <see cref="Span{T}"/>.
+/// One-shot, zero-allocation Zstandard compression and decompression primitives.
 /// </summary>
+/// <remarks>
+/// <para>
+/// All methods are pure functions of their <see cref="Span{T}"/> arguments and own no
+/// state, so concurrent invocations from many threads are safe — every call allocates
+/// a fresh native context internally inside libzstd.
+/// </para>
+/// <para>
+/// When you need to compress many small payloads back-to-back, prefer
+/// <see cref="ZstdStreamCompressor"/> / <see cref="ZstdStreamDecompressor"/>, which
+/// reuse a native <c>ZSTD_CCtx</c> / <c>ZSTD_DCtx</c> across calls and avoid the
+/// per-call context-allocation overhead.
+/// </para>
+/// </remarks>
 public static class ZstdCompressor
 {
     private const int MinCompressionLevel = 1;
