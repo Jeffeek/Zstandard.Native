@@ -1,5 +1,4 @@
 using Xunit;
-using Zstandard.Native;
 
 namespace Zstandard.Native.Tests;
 
@@ -25,8 +24,14 @@ public class EdgeCaseTests
         var dst = new byte[ZstdCompressor.GetCompressBound(src.Length)];
         var written = ZstdCompressor.Compress(src, dst);
 
-        // Flip a byte in the middle to corrupt the frame.
-        dst[written / 2] ^= 0xFF;
+        // Corrupt the Zstd frame magic (first 4 bytes, normally 0x28B52FFD).
+        // A flip in the payload region can occasionally decode to garbage without
+        // libzstd flagging it when no content checksum is present; corrupting the
+        // magic is the deterministic way to force an error.
+        dst[0] ^= 0xFF;
+        dst[1] ^= 0xFF;
+        dst[2] ^= 0xFF;
+        dst[3] ^= 0xFF;
 
         var roundTrip = new byte[src.Length];
         var ex = Assert.Throws<ZstdException>(() =>
@@ -81,7 +86,7 @@ public class EdgeCaseTests
         // so this is intentionally Span-only and uses NativeMemory for the source.
         unsafe
         {
-            byte* src = (byte*)System.Runtime.InteropServices.NativeMemory.Alloc((nuint)sz);
+            var src = (byte*)System.Runtime.InteropServices.NativeMemory.Alloc((nuint)sz);
             try
             {
                 // Fill with a compressible pattern.

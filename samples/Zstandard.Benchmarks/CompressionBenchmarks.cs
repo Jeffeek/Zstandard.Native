@@ -10,21 +10,26 @@ namespace Zstandard.Benchmarks;
 [Config(typeof(BenchConfig))]
 [MemoryDiagnoser]
 [GcServer(true)]
+// ReSharper disable once RedundantArgumentDefaultValue
 [GcConcurrent(true)]
 public class CompressionBenchmarks
 {
     [Params(4 * 1024, 64 * 1024, 1 * 1024 * 1024, 16 * 1024 * 1024)]
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public int PayloadSize { get; set; }
 
     [Params(1, 3, 9)]
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public int Level { get; set; }
 
     private byte[] _payload = [];
     private byte[] _compressed = [];
+    // ReSharper disable InconsistentNaming
     private byte[] _native_dst = [];
     private byte[] _native_decompressed = [];
     private byte[] _sharp_dst = [];
     private byte[] _sharp_decompressed = [];
+    // ReSharper restore InconsistentNaming
 
     [GlobalSetup]
     public void Setup()
@@ -34,7 +39,7 @@ public class CompressionBenchmarks
         _payload = new byte[PayloadSize];
         var rng = new Random(42);
         rng.NextBytes(_payload);
-        for (int i = 0; i < _payload.Length; i += 32)
+        for (var i = 0; i < _payload.Length; i += 32)
         {
             _payload[i] = 0;
         }

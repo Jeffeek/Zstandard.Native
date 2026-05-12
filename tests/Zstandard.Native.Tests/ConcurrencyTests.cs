@@ -1,5 +1,4 @@
 using Xunit;
-using Zstandard.Native;
 
 namespace Zstandard.Native.Tests;
 
@@ -25,7 +24,7 @@ public class ConcurrencyTests
             var compressed = new byte[ZstdCompressor.GetCompressBound(payload)];
             var roundTrip = new byte[payload];
 
-            for (int i = 0; i < iterationsPerThread; i++)
+            for (var i = 0; i < iterationsPerThread; i++)
             {
                 compressor.Reset();
                 var c = compressor.Compress(src, compressed, ZstdEndDirective.End);

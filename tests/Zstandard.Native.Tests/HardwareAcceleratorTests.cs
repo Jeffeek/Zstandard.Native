@@ -1,5 +1,4 @@
 using Xunit;
-using Zstandard.Native;
 
 namespace Zstandard.Native.Tests;
 

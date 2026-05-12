@@ -65,9 +65,9 @@ public static class HardwareAccelerator
         const int vlen = 64;
         nuint i = 0;
         var zero = Vector512<byte>.Zero;
-        for (; i + (nuint)vlen <= len; i += vlen)
+        for (; i + vlen <= len; i += vlen)
         {
-            Vector512.StoreUnsafe(zero, ref dst, i);
+            zero.StoreUnsafe(ref dst, i);
         }
         if (i < len)
         {
@@ -82,9 +82,9 @@ public static class HardwareAccelerator
         const int vlen = 32;
         nuint i = 0;
         var zero = Vector256<byte>.Zero;
-        for (; i + (nuint)vlen <= len; i += vlen)
+        for (; i + vlen <= len; i += vlen)
         {
-            Vector256.StoreUnsafe(zero, ref dst, i);
+            zero.StoreUnsafe(ref dst, i);
         }
         if (i < len)
         {
