@@ -1,0 +1,57 @@
+name: ReSharper Code Analysis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - "master"
+      - "release/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  inspect-code:
+    name: ReSharper InspectCode
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Fetch native libzstd (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libzstd1
+          bash scripts/fetch-natives.sh
+
+      - name: Setup .NET (restore + build)
+        uses: ./.github/actions/dotnet-setup
+
+      - name: ReSharper CLI InspectCode
+        uses: muno92/resharper_inspectcode@5e99b0c6b542b5fd3b938d4de201c94a882070b7 # 1.17.0
+        with:
+          solutionPath: ./Zstandard.Native.sln
+          version: 2025.3.3
+          failOnIssue: '1'
+          noBuild: true
+          solutionWideAnalysis: true
+          minimumReportSeverity: WARNING
+          minimumSeverity: warning
+          exclude: '**/obj/**;**/bin/**;**/TestResults/**;**/tests/**;**/samples/**'
+          properties: 'Configuration=Release'

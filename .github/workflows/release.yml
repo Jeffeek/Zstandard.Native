@@ -1,10 +1,9 @@
-name: publish
+name: Release Package
 
 on:
   push:
-    branches:
-      - master              # produces preview prerelease pushes
-      - "release/v*"        # produces stable pushes
+    tags:
+      - 'v*'  # Triggers on tags like v1.0.0, v1.2.3, v1.0.0-preview.1
   workflow_dispatch:
     inputs:
       dry_run:
@@ -13,13 +12,11 @@ on:
         default: false
 
 permissions:
-  contents: write
-  packages: read
-  id-token: write
+  contents: read
 
 concurrency:
-  group: publish-${{ github.ref }}
-  cancel-in-progress: false
+  group: release-${{ github.ref }}
+  cancel-in-progress: false  # Never cancel an in-progress release
 
 env:
   DOTNET_NOLOGO: "1"
@@ -28,30 +25,41 @@ env:
 
 jobs:
   # ---------------------------------------------------------------
-  # 1. Resolve version + tag from branch.
+  # 1. Extract the version from the tag.
   # ---------------------------------------------------------------
   version:
     runs-on: ubuntu-latest
     outputs:
-      kind: ${{ steps.compute.outputs.kind }}
-      version: ${{ steps.compute.outputs.version }}
-      version_prefix: ${{ steps.compute.outputs.version_prefix }}
-      version_suffix: ${{ steps.compute.outputs.version_suffix }}
-      tag: ${{ steps.compute.outputs.tag }}
-      is_stable: ${{ steps.compute.outputs.is_stable }}
+      version: ${{ steps.get.outputs.version }}
+      tag: ${{ steps.get.outputs.tag }}
+      is_prerelease: ${{ steps.get.outputs.is_prerelease }}
     steps:
-      - uses: actions/checkout@v4
-      - id: compute
-        run: bash scripts/release.sh
-        env:
-          BRANCH: ${{ github.ref_name }}
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-          GITHUB_SHA: ${{ github.sha }}
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - id: get
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "workflow_dispatch is only supported when also pushing a v* tag." >&2
+            exit 1
+          fi
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Version: $VERSION"
 
   # ---------------------------------------------------------------
-  # 2. Build + test on the full RID matrix. Each runner fetches its
-  #    native libzstd and uploads it as a per-RID artifact so the
-  #    pack job below can produce a real multi-RID nupkg.
+  # 2. Build + test on every RID. Each runner fetches its native
+  #    libzstd and uploads it as a per-RID artifact so the pack
+  #    job below produces a real multi-RID nupkg.
   # ---------------------------------------------------------------
   verify:
     needs: version
@@ -65,13 +73,18 @@ jobs:
           - { runner: windows-latest,   rid: win-x64     }
           - { runner: macos-13,         rid: osx-x64     }
           - { runner: macos-14,         rid: osx-arm64   }
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Fetch native libzstd
         shell: bash
@@ -93,15 +106,17 @@ jobs:
           esac
 
       - name: Upload native binary artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: natives-${{ matrix.rid }}
           path: runtimes/${{ matrix.rid }}/native/
           if-no-files-found: error
 
-      - run: dotnet restore Zstandard.Native.sln
-      - run: dotnet build Zstandard.Native.sln -c Release --no-restore -warnaserror
-      - run: dotnet test tests/Zstandard.Native.Tests/Zstandard.Native.Tests.csproj -c Release --no-build
+      - name: Setup .NET (restore + build)
+        uses: ./.github/actions/dotnet-setup
+
+      - name: Test
+        run: dotnet test tests/Zstandard.Native.Tests/Zstandard.Native.Tests.csproj -c Release --no-build
 
   # ---------------------------------------------------------------
   # 3. Pack with binaries from every RID merged into runtimes/.
@@ -109,16 +124,27 @@ jobs:
   pack:
     needs: [version, verify]
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup .NET (no build yet)
+        uses: ./.github/actions/dotnet-setup
+        with:
+          build: 'false'
 
       - name: Download natives for every RID
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b6f43b80c1e7d3affe51ec92 # v4.3.0
         with:
           path: artifacts/natives
           pattern: natives-*
@@ -135,12 +161,14 @@ jobs:
           done
 
       - name: Pack
+        # PACK_COMMANDS_START
         run: >
           dotnet pack src/Zstandard.Native/Zstandard.Native.csproj
           -c Release
-          -o artifacts/nupkg
-          -p:VersionPrefix=${{ needs.version.outputs.version_prefix }}
-          -p:VersionSuffix=${{ needs.version.outputs.version_suffix }}
+          --output ./artifacts/nupkg
+          -p:PackageVersion=${{ needs.version.outputs.version }}
+        # PACK_COMMANDS_END
+        timeout-minutes: 20
 
       - name: Inspect pack contents
         shell: bash
@@ -151,16 +179,18 @@ jobs:
             unzip -l "$nupkg" | grep -E "lib/|runtimes/" || true
           done
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload nupkg artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: nupkg
-          path: artifacts/nupkg
+          path: ./artifacts/nupkg
 
   # ---------------------------------------------------------------
-  # 4. NATIVE AOT VALIDATION GATE.
+  # 4. NATIVE AOT VALIDATION GATE — publish a consumer probe with
+  #    PublishAot=true and require its native binary to round-trip.
   # ---------------------------------------------------------------
   aot-gate:
-    name: aot-gate (${{ matrix.rid }})
+    name: AOT gate (${{ matrix.rid }})
     needs: [version, pack]
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -173,8 +203,18 @@ jobs:
           - { runner: macos-13,         rid: osx-x64     }
           - { runner: macos-14,         rid: osx-arm64   }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
         with:
           dotnet-version: 10.0.x
 
@@ -188,7 +228,8 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install zstd
 
-      - uses: actions/download-artifact@v4
+      - name: Download nupkg
+        uses: actions/download-artifact@d3f86a106a0bac45b6f43b80c1e7d3affe51ec92 # v4.3.0
         with:
           name: nupkg
           path: artifacts/nupkg
@@ -196,7 +237,6 @@ jobs:
       - name: Configure local-only NuGet feed
         shell: bash
         run: |
-          mkdir -p eng/AotProbe/.nuget
           cat > eng/AotProbe/NuGet.config <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
@@ -216,7 +256,7 @@ jobs:
           </configuration>
           EOF
 
-      - name: Restore + Publish AOT probe
+      - name: Publish AOT probe
         working-directory: eng/AotProbe
         run: >
           dotnet publish AotProbe.csproj
@@ -239,40 +279,65 @@ jobs:
           fi
 
   # ---------------------------------------------------------------
-  # 5. Push to NuGet only after every gate is green.
+  # 5. GitHub Release + nuget.org push (gated on every check).
   # ---------------------------------------------------------------
-  push:
+  publish:
+    name: Publish to NuGet.org
     needs: [version, pack, aot-gate]
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run == false }}
     runs-on: ubuntu-latest
     environment:
       name: nuget
+    permissions:
+      contents: write
+      packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/download-artifact@v4
+      - name: Download nupkg
+        uses: actions/download-artifact@d3f86a106a0bac45b6f43b80c1e7d3affe51ec92 # v4.3.0
         with:
           name: nupkg
           path: artifacts/nupkg
 
-      - name: Push to nuget.org
+      - name: List artifacts
+        run: ls -la ./artifacts/nupkg
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        with:
+          files: ./artifacts/nupkg/*.nupkg
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ needs.version.outputs.is_prerelease == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload nupkg to workflow artifacts (30-day retention)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: nuget-packages-${{ needs.version.outputs.version }}
+          path: ./artifacts/nupkg/*.nupkg
+          retention-days: 30
+
+      - name: Publish to nuget.org
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: >
-          dotnet nuget push "artifacts/nupkg/*.nupkg"
-          --source https://api.nuget.org/v3/index.json
+          dotnet nuget push "./artifacts/nupkg/*.nupkg"
           --api-key "$NUGET_API_KEY"
+          --source https://api.nuget.org/v3/index.json
           --skip-duplicate
-
-      - name: Tag commit (stable only)
-        if: ${{ needs.version.outputs.is_stable == 'true' }}
-        env:
-          TAG: ${{ needs.version.outputs.tag }}
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$TAG" -m "Release $TAG"
-          git push origin "$TAG"

@@ -1,0 +1,46 @@
+name: .NET Setup
+description: >
+  Sets up .NET 8 and .NET 10 SDKs, caches and restores NuGet packages, and
+  optionally builds the solution. Caller must run actions/checkout before
+  using this action.
+
+inputs:
+  solution-file:
+    description: 'Solution file to restore and build'
+    default: 'Zstandard.Native.sln'
+  build:
+    description: 'Whether to build (Release) after restore'
+    default: 'true'
+
+outputs:
+  dotnet-version:
+    description: 'The installed .NET 10 SDK version'
+    value: ${{ steps.setup-dotnet.outputs.dotnet-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup .NET 8 and .NET 10 SDKs
+      id: setup-dotnet
+      uses: actions/setup-dotnet@c2fa09f4bde5ebb9d1777cf28262a3eb3db3ced7 # v5.2.0
+      with:
+        dotnet-version: |
+          8.0.x
+          10.0.x
+
+    - name: Cache NuGet packages
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore dependencies
+      shell: bash
+      run: dotnet restore ${{ inputs.solution-file }}
+
+    - name: Build (Release)
+      if: inputs.build == 'true'
+      shell: bash
+      run: dotnet build ${{ inputs.solution-file }} -c Release --no-restore -warnaserror

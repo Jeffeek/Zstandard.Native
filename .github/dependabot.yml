@@ -1,12 +1,75 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
+# Dependabot configuration for Zstandard.Native
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # NuGet dependencies (root — covers Central Package Management)
+  - package-ecosystem: "nuget"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
+        update-types:
+          - "minor"
+          - "patch"
+    allow:
+      - dependency-type: "all"
 
+  # GitHub Actions dependencies (pinned by SHA in workflows; Dependabot bumps them)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # PACKAGE_DIRECTORIES_START
+  - package-ecosystem: nuget
+    directory: /src/Zstandard.Native
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /tests/Zstandard.Native.Tests
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /samples/Zstandard.Benchmarks
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: nuget
+    directory: /eng/AotProbe
+    schedule:
+      interval: weekly
+  # PACKAGE_DIRECTORIES_END
