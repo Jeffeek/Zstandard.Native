@@ -1,0 +1,222 @@
+name: publish
+
+on:
+  push:
+    branches:
+      - master              # produces preview prerelease pushes
+      - "release/v*"        # produces stable pushes
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build, pack, and run the AOT gate but skip the NuGet push."
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # for tagging
+  packages: read
+  id-token: write   # for NuGet trusted publishing if enabled
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+
+jobs:
+  # ---------------------------------------------------------------
+  # 1. Resolve version + tag from branch (release/v* vs master).
+  # ---------------------------------------------------------------
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      kind: ${{ steps.compute.outputs.kind }}
+      version: ${{ steps.compute.outputs.version }}
+      version_prefix: ${{ steps.compute.outputs.version_prefix }}
+      version_suffix: ${{ steps.compute.outputs.version_suffix }}
+      tag: ${{ steps.compute.outputs.tag }}
+      is_stable: ${{ steps.compute.outputs.is_stable }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: compute
+        run: bash scripts/release.sh
+        env:
+          BRANCH: ${{ github.ref_name }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+
+  # ---------------------------------------------------------------
+  # 2. Build + test on the full CI matrix. Same gates as ci.yml,
+  #    but always full Release config and -warnaserror.
+  # ---------------------------------------------------------------
+  verify:
+    needs: version
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { runner: ubuntu-latest,    rid: linux-x64   }
+          - { runner: ubuntu-24.04-arm, rid: linux-arm64 }
+          - { runner: windows-latest,   rid: win-x64     }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - run: dotnet restore Zstandard.Native.sln
+      - run: dotnet build Zstandard.Native.sln -c Release --no-restore -warnaserror
+      - run: dotnet test tests/Zstandard.Native.Tests/Zstandard.Native.Tests.csproj -c Release --no-build
+
+  # ---------------------------------------------------------------
+  # 3. Pack the library with the resolved version.
+  # ---------------------------------------------------------------
+  pack:
+    needs: [version, verify]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Pack
+        run: >
+          dotnet pack src/Zstandard.Native/Zstandard.Native.csproj
+          -c Release
+          -o artifacts/nupkg
+          -p:VersionPrefix=${{ needs.version.outputs.version_prefix }}
+          -p:VersionSuffix=${{ needs.version.outputs.version_suffix }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: artifacts/nupkg
+
+  # ---------------------------------------------------------------
+  # 4. NATIVE AOT VALIDATION GATE.
+  #    Pull the just-built nupkg into eng/AotProbe, publish it
+  #    with PublishAot=true, run the resulting native binary, and
+  #    require a successful round-trip. If anything here fails,
+  #    the push job is blocked.
+  # ---------------------------------------------------------------
+  aot-gate:
+    name: aot-gate (${{ matrix.rid }})
+    needs: [version, pack]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { runner: ubuntu-latest,    rid: linux-x64   }
+          - { runner: windows-latest,   rid: win-x64     }
+          - { runner: ubuntu-24.04-arm, rid: linux-arm64 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Linux AOT toolchain
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang zlib1g-dev
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: nupkg
+          path: artifacts/nupkg
+
+      - name: Configure local-only NuGet feed
+        shell: bash
+        run: |
+          mkdir -p eng/AotProbe/.nuget
+          cat > eng/AotProbe/NuGet.config <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="local" value="../../artifacts/nupkg" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+            </packageSources>
+            <packageSourceMapping>
+              <packageSource key="local">
+                <package pattern="Zstandard.Native" />
+              </packageSource>
+              <packageSource key="nuget.org">
+                <package pattern="*" />
+              </packageSource>
+            </packageSourceMapping>
+          </configuration>
+          EOF
+
+      - name: Restore + Publish AOT probe
+        working-directory: eng/AotProbe
+        run: >
+          dotnet publish AotProbe.csproj
+          -c Release
+          -r ${{ matrix.rid }}
+          -o publish
+          -p:ZstandardNativeVersion=${{ needs.version.outputs.version }}
+          -p:PublishAot=true
+          -warnaserror
+
+      - name: Run AOT probe
+        shell: bash
+        working-directory: eng/AotProbe/publish
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            ./AotProbe.exe
+          else
+            chmod +x ./AotProbe
+            ./AotProbe
+          fi
+
+  # ---------------------------------------------------------------
+  # 5. Push to NuGet only after every gate is green.
+  # ---------------------------------------------------------------
+  push:
+    needs: [version, pack, aot-gate]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run == false }}
+    runs-on: ubuntu-latest
+    environment:
+      name: nuget
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: nupkg
+          path: artifacts/nupkg
+
+      - name: Push to nuget.org
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: >
+          dotnet nuget push "artifacts/nupkg/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key "$NUGET_API_KEY"
+          --skip-duplicate
+
+      - name: Tag commit (stable only)
+        if: ${{ needs.version.outputs.is_stable == 'true' }}
+        env:
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"

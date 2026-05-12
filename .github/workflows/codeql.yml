@@ -1,0 +1,65 @@
+name: codeql
+
+on:
+  push:
+    branches: [master, "release/v*"]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Weekly Sunday 06:13 UTC -- catches new advisories without flooding PR queue.
+    - cron: "13 6 * * 0"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Extra suite tuned for native interop: extends security-and-quality with
+          # rules that flag unsafe P/Invoke, missing SafeHandle wrappers, and
+          # marshalling-related misuse.
+          queries: security-and-quality,security-extended
+          config: |
+            paths:
+              - src
+              - eng
+            paths-ignore:
+              - tests
+              - samples
+              - "**/bin/**"
+              - "**/obj/**"
+
+      - name: Build for analysis
+        run: |
+          dotnet restore Zstandard.Native.sln
+          dotnet build src/Zstandard.Native/Zstandard.Native.csproj -c Release --no-restore
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: true
