@@ -4,8 +4,13 @@ using Zstandard.Native.Interop;
 namespace Zstandard.Native.SafeHandles;
 
 /// <summary>
-/// Owns a native <c>ZSTD_DCtx*</c>. Guarantees release even on exceptional teardown.
+/// Owns a native <c>ZSTD_DCtx*</c>. Guarantees release even on exceptional teardown
+/// (process unload, finalizer queue, explicit disposal).
 /// </summary>
+/// <remarks>
+/// The handle itself is thread-safe to dispose, but the underlying <c>ZSTD_DCtx</c>
+/// is not — see <see cref="ZstdStreamDecompressor"/>.
+/// </remarks>
 public sealed class ZstdDecompressionContextHandle : SafeHandle
 {
     public ZstdDecompressionContextHandle() : base(nint.Zero, ownsHandle: true)

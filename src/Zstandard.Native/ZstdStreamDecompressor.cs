@@ -6,10 +6,23 @@ using Zstandard.Native.SafeHandles;
 namespace Zstandard.Native;
 
 /// <summary>
-/// Streaming Zstd decompressor wrapping a native <c>ZSTD_DCtx</c>. Reusable across
+/// Streaming Zstandard decompressor wrapping a native <c>ZSTD_DCtx</c>. Reusable across
 /// independent frames via <see cref="Reset"/>. Internal scratch buffers come from
 /// <see cref="ArrayPool{T}.Shared"/> and are returned in <see cref="Dispose"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <b>Thread safety:</b> instances are <i>not</i> thread-safe. Use one instance per
+/// thread, or serialize access externally. The <c>ZSTD_DCtx</c> carries window /
+/// dictionary / position state and will produce garbage if two threads write to it.
+/// </para>
+/// <para>
+/// <b>Disposal:</b> always dispose. The wrapped <see cref="SafeHandle"/> finalizes
+/// the native context as a safety net, but pooled scratch buffers will not be
+/// returned to <see cref="ArrayPool{T}.Shared"/> without an explicit
+/// <see cref="Dispose"/>.
+/// </para>
+/// </remarks>
 public sealed class ZstdStreamDecompressor : IDisposable
 {
     private readonly ZstdDecompressionContextHandle _handle;

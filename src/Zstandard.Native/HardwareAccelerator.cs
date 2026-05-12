@@ -12,10 +12,16 @@ namespace Zstandard.Native;
 /// streaming codec to scrub pooled buffers and zero scratch regions in the hot path.
 /// </summary>
 /// <remarks>
+/// <para>
 /// On x86, <see cref="Vector512{T}"/> is lowered to AVX-512F on Skylake-X+ and to
 /// AVX10.2 256/512 on supporting CPUs by the .NET 10 JIT — we don't have to choose at
 /// the IL level. On ARM64, the SVE path uses variable-length predicated stores when
 /// the runtime exposes the <c>Sve</c> intrinsics surface.
+/// </para>
+/// <para>
+/// <b>Thread safety:</b> all members are static, idempotent, and free of shared
+/// mutable state — safe to call concurrently from any number of threads.
+/// </para>
 /// </remarks>
 public static class HardwareAccelerator
 {
