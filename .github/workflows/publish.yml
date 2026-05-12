@@ -13,9 +13,9 @@ on:
         default: false
 
 permissions:
-  contents: write   # for tagging
+  contents: write
   packages: read
-  id-token: write   # for NuGet trusted publishing if enabled
+  id-token: write
 
 concurrency:
   group: publish-${{ github.ref }}
@@ -28,7 +28,7 @@ env:
 
 jobs:
   # ---------------------------------------------------------------
-  # 1. Resolve version + tag from branch (release/v* vs master).
+  # 1. Resolve version + tag from branch.
   # ---------------------------------------------------------------
   version:
     runs-on: ubuntu-latest
@@ -49,8 +49,9 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
 
   # ---------------------------------------------------------------
-  # 2. Build + test on the full CI matrix. Same gates as ci.yml,
-  #    but always full Release config and -warnaserror.
+  # 2. Build + test on the full RID matrix. Each runner fetches its
+  #    native libzstd and uploads it as a per-RID artifact so the
+  #    pack job below can produce a real multi-RID nupkg.
   # ---------------------------------------------------------------
   verify:
     needs: version
@@ -62,6 +63,8 @@ jobs:
           - { runner: ubuntu-latest,    rid: linux-x64   }
           - { runner: ubuntu-24.04-arm, rid: linux-arm64 }
           - { runner: windows-latest,   rid: win-x64     }
+          - { runner: macos-13,         rid: osx-x64     }
+          - { runner: macos-14,         rid: osx-arm64   }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -70,12 +73,38 @@ jobs:
             8.0.x
             10.0.x
 
+      - name: Fetch native libzstd
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ runner.os }}" in
+            Linux)
+              sudo apt-get update
+              sudo apt-get install -y libzstd1
+              bash scripts/fetch-natives.sh
+              ;;
+            macOS)
+              brew install zstd
+              bash scripts/fetch-natives.sh
+              ;;
+            Windows)
+              pwsh scripts/fetch-natives.ps1
+              ;;
+          esac
+
+      - name: Upload native binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: natives-${{ matrix.rid }}
+          path: runtimes/${{ matrix.rid }}/native/
+          if-no-files-found: error
+
       - run: dotnet restore Zstandard.Native.sln
       - run: dotnet build Zstandard.Native.sln -c Release --no-restore -warnaserror
       - run: dotnet test tests/Zstandard.Native.Tests/Zstandard.Native.Tests.csproj -c Release --no-build
 
   # ---------------------------------------------------------------
-  # 3. Pack the library with the resolved version.
+  # 3. Pack with binaries from every RID merged into runtimes/.
   # ---------------------------------------------------------------
   pack:
     needs: [version, verify]
@@ -88,6 +117,23 @@ jobs:
             8.0.x
             10.0.x
 
+      - name: Download natives for every RID
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/natives
+          pattern: natives-*
+
+      - name: Stage natives under runtimes/<rid>/native/
+        shell: bash
+        run: |
+          set -euo pipefail
+          for dir in artifacts/natives/natives-*; do
+            rid="${dir##*/natives-}"
+            mkdir -p "runtimes/${rid}/native"
+            cp -f "${dir}"/* "runtimes/${rid}/native/"
+            ls -la "runtimes/${rid}/native/"
+          done
+
       - name: Pack
         run: >
           dotnet pack src/Zstandard.Native/Zstandard.Native.csproj
@@ -96,6 +142,15 @@ jobs:
           -p:VersionPrefix=${{ needs.version.outputs.version_prefix }}
           -p:VersionSuffix=${{ needs.version.outputs.version_suffix }}
 
+      - name: Inspect pack contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          for nupkg in artifacts/nupkg/*.nupkg; do
+            echo "=== $nupkg ==="
+            unzip -l "$nupkg" | grep -E "lib/|runtimes/" || true
+          done
+
       - uses: actions/upload-artifact@v4
         with:
           name: nupkg
@@ -103,10 +158,6 @@ jobs:
 
   # ---------------------------------------------------------------
   # 4. NATIVE AOT VALIDATION GATE.
-  #    Pull the just-built nupkg into eng/AotProbe, publish it
-  #    with PublishAot=true, run the resulting native binary, and
-  #    require a successful round-trip. If anything here fails,
-  #    the push job is blocked.
   # ---------------------------------------------------------------
   aot-gate:
     name: aot-gate (${{ matrix.rid }})
@@ -117,11 +168,12 @@ jobs:
       matrix:
         include:
           - { runner: ubuntu-latest,    rid: linux-x64   }
-          - { runner: windows-latest,   rid: win-x64     }
           - { runner: ubuntu-24.04-arm, rid: linux-arm64 }
+          - { runner: windows-latest,   rid: win-x64     }
+          - { runner: macos-13,         rid: osx-x64     }
+          - { runner: macos-14,         rid: osx-arm64   }
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
@@ -130,7 +182,11 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang zlib1g-dev
+          sudo apt-get install -y clang zlib1g-dev libzstd1
+
+      - name: Install macOS runtime libzstd
+        if: runner.os == 'macOS'
+        run: brew install zstd
 
       - uses: actions/download-artifact@v4
         with:

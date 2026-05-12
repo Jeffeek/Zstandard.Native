@@ -137,6 +137,85 @@ public sealed class ZstdDecompressionStream : Stream
     }
 
     /// <inheritdoc />
+    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    {
+        ValidateBufferArguments(buffer, offset, count);
+        return await ReadAsync(buffer.AsMemory(offset, count), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (buffer.IsEmpty)
+        {
+            return 0;
+        }
+
+        var totalWritten = 0;
+        while (totalWritten < buffer.Length)
+        {
+            if (_inBufPos >= _inBufLen && !_innerEof)
+            {
+                _inBufLen = await _inner.ReadAsync(_inBuf.AsMemory(), cancellationToken).ConfigureAwait(false);
+                _inBufPos = 0;
+                if (_inBufLen == 0)
+                {
+                    _innerEof = true;
+                }
+            }
+
+            var inSlice = _inBuf.AsSpan(_inBufPos, _inBufLen - _inBufPos);
+            var dstSlice = buffer.Span[totalWritten..];
+
+            var r = _decompressor.Decompress(inSlice, dstSlice);
+            _inBufPos += r.BytesConsumed;
+            totalWritten += r.BytesWritten;
+
+            if (r.IsCompleted && _innerEof && _inBufPos >= _inBufLen)
+            {
+                break;
+            }
+            if (r is { BytesConsumed: 0, BytesWritten: 0 })
+            {
+                break;
+            }
+        }
+
+        return totalWritten;
+    }
+
+    /// <inheritdoc />
+    public override Task FlushAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    /// <inheritdoc />
+    public override async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _decompressor.Dispose();
+        var buf = _inBuf;
+        _inBuf = null;
+        if (buf is not null)
+        {
+            ArrayPool<byte>.Shared.Return(buf);
+        }
+
+        if (!_leaveOpen)
+        {
+            await _inner.DisposeAsync().ConfigureAwait(false);
+        }
+
+        _disposed = true;
+        // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
         if (_disposed)
