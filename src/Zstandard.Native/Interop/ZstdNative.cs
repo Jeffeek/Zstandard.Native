@@ -89,6 +89,19 @@ internal static partial class ZstdNative
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_DStreamOutSize")]
     internal static partial nuint ZSTD_DStreamOutSize();
 
+    // --- dictionary training (ZDICT_*) ---
+
+    [LibraryImport(LibraryName, EntryPoint = "ZDICT_trainFromBuffer")]
+    internal static unsafe partial nuint ZDICT_trainFromBuffer(
+        void* dictBuffer, nuint dictBufferCapacity,
+        void* samplesBuffer, nuint* samplesSizes, uint nbSamples);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZDICT_isError")]
+    internal static partial uint ZDICT_isError(nuint code);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZDICT_getErrorName")]
+    internal static partial nint ZDICT_getErrorName(nuint code);
+
     // ReSharper disable InconsistentNaming
     internal const ulong ZSTD_CONTENTSIZE_UNKNOWN = unchecked((ulong)-1);
     internal const ulong ZSTD_CONTENTSIZE_ERROR = unchecked((ulong)-2);

@@ -28,9 +28,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: linux,   arch: x64,   runner: ubuntu-latest,   rid: linux-x64   }
+          - { os: linux,   arch: x64,   runner: ubuntu-latest,    rid: linux-x64   }
           - { os: linux,   arch: arm64, runner: ubuntu-24.04-arm, rid: linux-arm64 }
-          - { os: windows, arch: x64,   runner: windows-latest,  rid: win-x64     }
+          - { os: windows, arch: x64,   runner: windows-latest,   rid: win-x64     }
+          - { os: macos,   arch: x64,   runner: macos-15-intel,   rid: osx-x64     }
+          - { os: macos,   arch: arm64, runner: macos-15,         rid: osx-arm64   }
 
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +44,30 @@ jobs:
             8.0.x
             10.0.x
 
-      - name: Restore (locked, audited)
+      - name: Fetch native libzstd
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${{ runner.os }}" in
+            Linux)
+              sudo apt-get update
+              sudo apt-get install -y libzstd1
+              bash scripts/fetch-natives.sh
+              ;;
+            macOS)
+              brew install zstd
+              bash scripts/fetch-natives.sh
+              ;;
+            Windows)
+              pwsh scripts/fetch-natives.ps1
+              ;;
+          esac
+
+      - name: Verify native binary present
+        shell: bash
+        run: ls -la runtimes/${{ matrix.rid }}/native/
+
+      - name: Restore
         run: dotnet restore Zstandard.Native.sln --locked-mode || dotnet restore Zstandard.Native.sln
         env:
           NuGetAudit: "true"
@@ -53,7 +78,6 @@ jobs:
         run: dotnet build Zstandard.Native.sln -c Release --no-restore -warnaserror
 
       - name: Test
-        # Linux arm64 cross-arch runners are slower; bump timeout there.
         timeout-minutes: ${{ matrix.arch == 'arm64' && 30 || 15 }}
         run: >
           dotnet test tests/Zstandard.Native.Tests/Zstandard.Native.Tests.csproj
@@ -81,6 +105,18 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
+
+      - name: Fetch native libzstd (all RIDs)
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libzstd1
+          # Linux host: covers linux-x64. Pack also includes the Windows binary
+          # via the script's --all flag (downloaded from facebook/zstd releases).
+          # macOS/linux-arm64 binaries can't be cross-fetched here; they're added
+          # by their own native CI runs once we wire a publish-time artifact merge.
+          bash scripts/fetch-natives.sh --all || true
 
       - name: Compute version (dry-run)
         id: version
