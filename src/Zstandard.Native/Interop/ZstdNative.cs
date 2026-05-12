@@ -9,6 +9,8 @@ internal static partial class ZstdNative
 {
     internal const string LibraryName = "libzstd";
 
+    // --- one-shot ---
+
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_compress")]
     internal static unsafe partial nuint ZSTD_compress(
         void* dst, nuint dstCapacity,
@@ -37,8 +39,86 @@ internal static partial class ZstdNative
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_versionNumber")]
     internal static partial uint ZSTD_versionNumber();
 
+    // --- context lifecycle ---
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_createCCtx")]
+    internal static partial nint ZSTD_createCCtx();
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_freeCCtx")]
+    internal static partial nuint ZSTD_freeCCtx(nint cctx);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_createDCtx")]
+    internal static partial nint ZSTD_createDCtx();
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_freeDCtx")]
+    internal static partial nuint ZSTD_freeDCtx(nint dctx);
+
+    // --- parameter / reset ---
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_CCtx_setParameter")]
+    internal static partial nuint ZSTD_CCtx_setParameter(nint cctx, int param, int value);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_DCtx_setParameter")]
+    internal static partial nuint ZSTD_DCtx_setParameter(nint dctx, int param, int value);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_CCtx_reset")]
+    internal static partial nuint ZSTD_CCtx_reset(nint cctx, int reset);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_DCtx_reset")]
+    internal static partial nuint ZSTD_DCtx_reset(nint dctx, int reset);
+
+    // --- streaming ---
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_compressStream2")]
+    internal static unsafe partial nuint ZSTD_compressStream2(
+        nint cctx, ZSTD_outBuffer* output, ZSTD_inBuffer* input, int endOp);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_decompressStream")]
+    internal static unsafe partial nuint ZSTD_decompressStream(
+        nint dctx, ZSTD_outBuffer* output, ZSTD_inBuffer* input);
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_CStreamInSize")]
+    internal static partial nuint ZSTD_CStreamInSize();
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_CStreamOutSize")]
+    internal static partial nuint ZSTD_CStreamOutSize();
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_DStreamInSize")]
+    internal static partial nuint ZSTD_DStreamInSize();
+
+    [LibraryImport(LibraryName, EntryPoint = "ZSTD_DStreamOutSize")]
+    internal static partial nuint ZSTD_DStreamOutSize();
+
     // ReSharper disable InconsistentNaming
     internal const ulong ZSTD_CONTENTSIZE_UNKNOWN = unchecked((ulong)-1);
     internal const ulong ZSTD_CONTENTSIZE_ERROR = unchecked((ulong)-2);
+
+    // ZSTD_cParameter / ZSTD_dParameter ids (libzstd public API constants).
+    internal const int ZSTD_c_compressionLevel = 100;
+    internal const int ZSTD_c_checksumFlag = 201;
+    internal const int ZSTD_c_nbWorkers = 400;
+
+    internal const int ZSTD_d_windowLogMax = 100;
+
+    // ZSTD_ResetDirective
+    internal const int ZSTD_reset_session_only = 1;
+    internal const int ZSTD_reset_parameters = 2;
+    internal const int ZSTD_reset_session_and_parameters = 3;
     // ReSharper restore InconsistentNaming
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal unsafe struct ZSTD_inBuffer
+{
+    public void* src;
+    public nuint size;
+    public nuint pos;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+internal unsafe struct ZSTD_outBuffer
+{
+    public void* dst;
+    public nuint size;
+    public nuint pos;
 }
