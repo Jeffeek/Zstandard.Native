@@ -13,7 +13,7 @@
   <ItemGroup>
     <!-- Benchmarks -->
     <PackageVersion Include="BenchmarkDotNet"             Version="0.14.0" />
-    <PackageVersion Include="ZstdSharp.Port"              Version="0.8.5" />
+    <PackageVersion Include="ZstdSharp.Port"              Version="0.8.8" />
 
     <!-- Tests -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk"      Version="17.11.1" />
