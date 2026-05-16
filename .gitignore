@@ -28,6 +28,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+results/
+BenchmarkDotNet.Artifacts/
 
 # .NET Core
 project.lock.json
