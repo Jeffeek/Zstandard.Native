@@ -121,7 +121,8 @@ fetch_windows_from_source() {
     fi
 
     echo "[${rid}] extracting source"
-    tar -xzf "${tmp}/zstd.tar.gz" -C "${tmp}"
+    # --force-local: prevent GNU tar from treating 'C:\...' as host:path (rsh-style) on MSYS/Git Bash.
+    tar --force-local -xzf "${tmp}/zstd.tar.gz" -C "${tmp}"
 
     local src_root="${tmp}/zstd-${ver}"
     local build_dir="${tmp}/build"

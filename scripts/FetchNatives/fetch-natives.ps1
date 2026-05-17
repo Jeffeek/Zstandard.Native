@@ -127,7 +127,8 @@ function Build-WindowsBinaryFromSource([string]$rid, [string]$ver, [string]$cmak
         Invoke-WebRequest -Uri $srcUrl -OutFile $tarball -UseBasicParsing
 
         Write-Host "[$rid] extracting source"
-        & tar -xzf $tarball -C $tmp
+        # --force-local: prevent GNU tar from treating 'C:\...' as host:path (rsh-style).
+        & tar --force-local -xzf $tarball -C $tmp
         if ($LASTEXITCODE -ne 0) { throw "[$rid] tar extraction failed (exit $LASTEXITCODE)." }
 
         $srcRoot  = Join-Path $tmp "zstd-$ver"
