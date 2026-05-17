@@ -145,7 +145,7 @@ jobs:
           build: 'false'
 
       - name: Download natives for every RID
-        uses: actions/download-artifact@d3f86a106a0bac45b6f43b80c1e7d3affe51ec92 # v4.3.0
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: artifacts/natives
           pattern: natives-*
@@ -231,7 +231,7 @@ jobs:
         run: brew install zstd
 
       - name: Download nupkg
-        uses: actions/download-artifact@d3f86a106a0bac45b6f43b80c1e7d3affe51ec92 # v4.3.0
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: nupkg
           path: artifacts/nupkg
@@ -310,7 +310,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Download nupkg
-        uses: actions/download-artifact@d3f86a106a0bac45b6f43b80c1e7d3affe51ec92 # v4.3.0
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: nupkg
           path: artifacts/nupkg
