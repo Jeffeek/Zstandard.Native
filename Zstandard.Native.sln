@@ -10,8 +10,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution files", "Solution files", "{EE6E7AAD-66BB-4783-B499-A2F868EB675F}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		CONTRIBUTING.md = CONTRIBUTING.md
 		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 		LICENSE = LICENSE
+		NuGet.config = NuGet.config
+		README.md = README.md
+		SECURITY.md = SECURITY.md
 		Zstandard.Native.sln.DotSettings = Zstandard.Native.sln.DotSettings
 		Zstandard.Native.sln.DotSettings.user = Zstandard.Native.sln.DotSettings.user
 	EndProjectSection

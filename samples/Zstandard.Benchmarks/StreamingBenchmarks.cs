@@ -12,6 +12,7 @@ namespace Zstandard.Benchmarks;
 public class StreamingBenchmarks
 {
     [Params(64 * 1024, 1 * 1024 * 1024)]
+    // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public int PayloadSize { get; set; }
 
     private byte[] _payload = [];

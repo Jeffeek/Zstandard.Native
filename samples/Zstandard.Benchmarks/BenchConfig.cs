@@ -20,16 +20,22 @@ public sealed class BenchConfig : ManualConfig
         AddDiagnoser(MemoryDiagnoser.Default);
         AddColumn(StatisticColumn.Mean, StatisticColumn.StdDev, StatisticColumn.P95);
         AddColumn(new ThroughputColumn());
-
-        AddJob(Job.Default
-            .WithRuntime(CoreRuntime.Core80)
-            .WithId("JIT"));
-
-        AddJob(Job.Default
-            .WithRuntime(NativeAotRuntime.Net80)
-            .WithId("AOT"));
+        AddVersionGroup("8.0", CoreRuntime.Core80, NativeAotRuntime.Net80);
+        AddVersionGroup("9.0", CoreRuntime.Core90, NativeAotRuntime.Net90);
+        AddVersionGroup("10.0", CoreRuntime.Core10_0, NativeAotRuntime.Net10_0);
 
         SummaryStyle = SummaryStyle.Default.WithTimeUnit(TimeUnit.Microsecond);
+    }
+
+    private void AddVersionGroup(string version, CoreRuntime coreRuntime, NativeAotRuntime nativeAotRuntime)
+    {
+        AddJob(Job.Default
+            .WithRuntime(coreRuntime)
+            .WithId($"JIT {version}"));
+
+        AddJob(Job.Default
+            .WithRuntime(nativeAotRuntime)
+            .WithId($"AOT {version}"));
     }
 }
 
