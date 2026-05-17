@@ -101,9 +101,15 @@ fetch_windows_from_source() {
             ;;
     esac
 
-    for tool in cmake tar; do
-        command -v "$tool" >/dev/null 2>&1 || { echo "[${rid}] '$tool' is required but not on PATH." >&2; return 1; }
-    done
+    command -v cmake >/dev/null 2>&1 || { echo "[${rid}] 'cmake' is required but not on PATH." >&2; return 1; }
+    # Prefer Windows built-in bsdtar (System32\tar.exe). MSYS GNU tar mangles
+    # native Windows paths ('C:\...').
+    local tar_exe="${SYSTEMROOT:-/c/Windows}/System32/tar.exe"
+    tar_exe="${tar_exe//\\//}"
+    if [[ ! -x "${tar_exe}" ]]; then
+        echo "[${rid}] Windows bsdtar not found at ${tar_exe}." >&2
+        return 1
+    fi
 
     local src_url="https://github.com/facebook/zstd/releases/download/v${ver}/zstd-${ver}.tar.gz"
     local dest="${runtimes}/${rid}/native"
@@ -120,9 +126,8 @@ fetch_windows_from_source() {
         wget -q -O "${tmp}/zstd.tar.gz" "${src_url}"
     fi
 
-    echo "[${rid}] extracting source"
-    # --force-local: prevent GNU tar from treating 'C:\...' as host:path (rsh-style) on MSYS/Git Bash.
-    tar --force-local -xzf "${tmp}/zstd.tar.gz" -C "${tmp}"
+    echo "[${rid}] extracting source (via ${tar_exe})"
+    "${tar_exe}" -xzf "${tmp}/zstd.tar.gz" -C "${tmp}"
 
     local src_root="${tmp}/zstd-${ver}"
     local build_dir="${tmp}/build"

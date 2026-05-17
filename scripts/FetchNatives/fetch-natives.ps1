@@ -109,10 +109,15 @@ function Save-WindowsBinary([string]$rid, [string]$ver) {
 }
 
 function Build-WindowsBinaryFromSource([string]$rid, [string]$ver, [string]$cmakeArch) {
-    foreach ($tool in @('cmake', 'tar')) {
-        if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
-            throw "[$rid] '$tool' is required to build libzstd from source but is not on PATH."
-        }
+    if (-not (Get-Command 'cmake' -ErrorAction SilentlyContinue)) {
+        throw "[$rid] 'cmake' is required to build libzstd from source but is not on PATH."
+    }
+    # Prefer the Windows built-in bsdtar (System32\tar.exe). It handles 'C:\...'
+    # paths natively. MSYS GNU tar (Git for Windows) mangles backslashes / escapes
+    # the colon when given native Windows paths.
+    $tarExe = Join-Path $env:SystemRoot 'System32\tar.exe'
+    if (-not (Test-Path -LiteralPath $tarExe)) {
+        throw "[$rid] Windows bsdtar not found at $tarExe."
     }
 
     $srcUrl  = "https://github.com/facebook/zstd/releases/download/v$ver/zstd-$ver.tar.gz"
@@ -126,9 +131,8 @@ function Build-WindowsBinaryFromSource([string]$rid, [string]$ver, [string]$cmak
         Write-Host "[$rid] downloading source $srcUrl"
         Invoke-WebRequest -Uri $srcUrl -OutFile $tarball -UseBasicParsing
 
-        Write-Host "[$rid] extracting source"
-        # --force-local: prevent GNU tar from treating 'C:\...' as host:path (rsh-style).
-        & tar --force-local -xzf $tarball -C $tmp
+        Write-Host "[$rid] extracting source (via $tarExe)"
+        & $tarExe -xzf $tarball -C $tmp
         if ($LASTEXITCODE -ne 0) { throw "[$rid] tar extraction failed (exit $LASTEXITCODE)." }
 
         $srcRoot  = Join-Path $tmp "zstd-$ver"
