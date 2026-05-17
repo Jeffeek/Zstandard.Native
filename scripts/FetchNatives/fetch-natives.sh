@@ -5,8 +5,8 @@
 # Pass --all to attempt every supported RID.
 #
 # Usage:
-#   bash scripts/fetch-natives.sh
-#   bash scripts/fetch-natives.sh --version 1.5.6 --all
+#   bash scripts/FetchNatives/fetch-natives.sh
+#   bash scripts/FetchNatives/fetch-natives.sh --version 1.5.6 --all
 
 set -euo pipefail
 
@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd -- "${script_dir}/.." && pwd)"
+repo_root="$(cd -- "${script_dir}/../.." && pwd)"
 runtimes="${repo_root}/runtimes"
 
 host_rid() {
@@ -65,7 +65,7 @@ fetch_windows() {
     if command -v unzip >/dev/null 2>&1; then
         unzip -q "${tmp}/zstd.zip" -d "${tmp}"
     else
-        echo "[${rid}] unzip not found. Install unzip or run scripts/fetch-natives.ps1." >&2
+        echo "[${rid}] unzip not found. Install unzip or run scripts/FetchNatives/fetch-natives.ps1." >&2
         return 1
     fi
 

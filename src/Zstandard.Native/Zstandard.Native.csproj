@@ -14,7 +14,7 @@
   <!-- ============================================================ -->
   <!-- Native runtime binaries.                                      -->
   <!-- Each entry is gated by Exists() so the project still builds   -->
-  <!-- when scripts/fetch-natives.{ps1,sh} hasn't populated the file -->
+  <!-- when scripts/FetchNatives/fetch-natives.{ps1,sh} hasn't populated the file -->
   <!-- for that RID. Present binaries are copied next to consumer    -->
   <!-- outputs AND packed at runtimes/<rid>/native/ inside the nupkg.-->
   <!-- ============================================================ -->

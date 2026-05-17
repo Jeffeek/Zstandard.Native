@@ -45,7 +45,7 @@ dotnet test    tests/Zstandard.Native.Tests
 
 You need:
 
-- .NET 8 SDK **and** .NET 10 SDK (the library targets both).
+- .NET 8, .NET 9, and .NET 10 SDKs (the library targets all three).
 - A `libzstd` binary on the loader path. The simplest setup on Windows is `winget install Facebook.Zstandard`; on Linux `apt-get install libzstd1`; on macOS `brew install zstd`. See the README for the resolver probe order.
 - PowerShell 7+ if you want to run `scripts/release.ps1`. The bash equivalent works anywhere.
 
@@ -191,7 +191,7 @@ Before opening a PR, walk through every new public symbol against this list:
 - [ ] Round-trip test.
 - [ ] Error-path test.
 - [ ] Concurrency test if the type owns mutable native state.
-- [ ] `dotnet build -warnaserror` is clean on `net8.0` and `net10.0`.
+- [ ] `dotnet build -warnaserror` is clean on `net8.0`, `net9.0`, and `net10.0`.
 - [ ] AOT gate (locally or in CI) is green.
 
 ---

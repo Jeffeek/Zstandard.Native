@@ -5,7 +5,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Zstandard.Native.svg)](https://www.nuget.org/packages/Zstandard.Native)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Ultra-fast, **Native AOT-safe** Zstandard wrapper for **.NET 8** and **.NET 10** with zero-allocation `Span<byte>` APIs, source-generated `[LibraryImport]` bindings, and hardware-accelerated paths that target **AVX10.2** on x86 and **SVE** on ARM64 via the .NET 10 JIT.
+Ultra-fast, **Native AOT-safe** Zstandard wrapper for **.NET 8**, **.NET 9**, and **.NET 10** with zero-allocation `Span<byte>` APIs, source-generated `[LibraryImport]` bindings, and hardware-accelerated paths that target **AVX10.2** on x86 and **SVE** on ARM64 via the .NET 10 JIT.
 
 ```csharp
 using Zstandard.Native;
@@ -634,6 +634,25 @@ var r = d.Decompress(compressedChunk, outBuf);
 if (r.IsCompleted) { /* one full frame consumed */ }
 ```
 
+### Stream adapters
+
+`ZstdCompressionStream` and `ZstdDecompressionStream` wrap the low-level streaming types behind the standard `System.IO.Stream` interface for drop-in use with existing `Stream`-based pipelines:
+
+```csharp
+// Compress into a FileStream
+await using var fs = File.OpenWrite("out.zst");
+await using var zs = new ZstdCompressionStream(fs, compressionLevel: 3);
+await source.CopyToAsync(zs);
+// frame is sealed on Dispose — do not skip it
+
+// Decompress from a FileStream
+await using var fs2 = File.OpenRead("out.zst");
+await using var zd = new ZstdDecompressionStream(fs2);
+await zd.CopyToAsync(destination);
+```
+
+For maximum throughput on hot paths, prefer `ZstdStreamCompressor` / `ZstdStreamDecompressor` directly — the `Stream` adapters layer an extra copy and `ArrayPool` rent on top.
+
 ---
 
 ## Native runtime binaries
@@ -651,6 +670,7 @@ The runtime package(s) drop binaries under `runtimes/<rid>/native/`:
 
 ```
 runtimes/win-x64/native/libzstd.dll
+runtimes/win-arm64/native/libzstd.dll
 runtimes/linux-x64/native/libzstd.so
 runtimes/linux-arm64/native/libzstd.so
 runtimes/osx-x64/native/libzstd.dylib
@@ -699,8 +719,11 @@ The bindings target **libzstd >= 1.5.0** (`ZSTD_compressStream2`, modern paramet
 |---|---|---|
 | `ZstdCompressor` (static) | ✅ yes | n/a |
 | `HardwareAccelerator` (static) | ✅ yes | n/a |
+| `ZstdDictionaryTrainer` (static) | ✅ yes | n/a |
 | `ZstdStreamCompressor` | ❌ **not** | required (`using` / `Dispose()`) |
 | `ZstdStreamDecompressor` | ❌ **not** | required (`using` / `Dispose()`) |
+| `ZstdCompressionStream` | ❌ **not** | required — frame is only closed on `Dispose()` |
+| `ZstdDecompressionStream` | ❌ **not** | required (`using` / `Dispose()`) |
 | `ZstdCompressionContextHandle` | dispose-safe | follows handle owner |
 | `ZstdDecompressionContextHandle` | dispose-safe | follows handle owner |
 
@@ -713,15 +736,18 @@ The streaming classes carry a mutable native context. **One instance per thread,
 | Target framework | Supported | Notes |
 |---|---|---|
 | `net8.0` | ✅ | Full feature set. Vector512 and AVX-512F lit up on supporting CPUs. |
+| `net9.0` | ✅ | Same feature set as net8.0; receives its own TFM slice for future net9 APIs. |
 | `net10.0` | ✅ | Adds the AVX10.2 + SVE codegen paths (no source change required). |
 | `net6.0`, `net7.0`, `netstandard2.x` | ❌ | `[LibraryImport]` and `nuint` require modern TFMs. |
 
 | RID | CI | AOT gate |
 |---|---|---|
 | `win-x64` | ✅ | ✅ |
+| `win-arm64` | ✅ (`windows-11-arm`) | ✅ |
 | `linux-x64` | ✅ | ✅ |
 | `linux-arm64` | ✅ | ✅ |
-| `osx-x64` / `osx-arm64` | community | not in CI yet |
+| `osx-x64` | ✅ (`macos-15-intel`) | ✅ |
+| `osx-arm64` | ✅ (`macos-15`) | ✅ |
 
 ---
 

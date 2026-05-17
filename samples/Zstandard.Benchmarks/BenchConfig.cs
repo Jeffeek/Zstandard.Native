@@ -9,9 +9,7 @@ using Perfolizer.Horology;
 namespace Zstandard.Benchmarks;
 
 /// <summary>
-/// Two-job config: standard CoreCLR JIT vs Native AOT child process.
-/// Adjust the <see cref="NativeAotRuntime"/> entry when BenchmarkDotNet ships a
-/// dedicated .NET 10 AOT runtime constant.
+/// Six-job config: JIT and NativeAOT for .NET 8, .NET 9, and .NET 10.
 /// </summary>
 public sealed class BenchConfig : ManualConfig
 {

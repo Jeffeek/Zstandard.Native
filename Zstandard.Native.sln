@@ -30,12 +30,53 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zstandard.Native.Tests", "tests\Zstandard.Native.Tests\Zstandard.Native.Tests.csproj", "{E6A75818-017B-40CB-8159-B7075FD2BDBD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{E7AF48EE-0D1F-47CD-9200-0707C3EFFAB9}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{8DFABC35-B26E-49C5-AA3B-3AD9A4C45D77}"
 	ProjectSection(SolutionItems) = preProject
+		.github\actions\dotnet-setup\action.yml = .github\actions\dotnet-setup\action.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
 		.github\workflows\codeql.yml = .github\workflows\codeql.yml
+		.github\workflows\dependency-review.yml = .github\workflows\dependency-review.yml
+		.github\workflows\nuget-activity-monitor.yml = .github\workflows\nuget-activity-monitor.yml
 		.github\workflows\publish.yml = .github\workflows\publish.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
+		.github\workflows\resharper-analysis.yml = .github\workflows\resharper-analysis.yml
+		.github\workflows\scorecard.yml = .github\workflows\scorecard.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{94AD6525-446E-4715-8F69-69E77EDC750D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{10B56A25-C2AD-4100-9FA7-029C6660C2CC}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\Build\Build.ps1 = scripts\Build\Build.ps1
+		scripts\Build\Build.sh = scripts\Build\Build.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Release", "Release", "{E90B6838-ABDA-4339-BB2B-C2C38F06E848}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\Release\Release.ps1 = scripts\Release\Release.ps1
+		scripts\Release\Release.sh = scripts\Release\Release.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NugetPackage", "NugetPackage", "{33B39A89-D866-4B64-8D91-1856223DF28E}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\NugetPackage\NugetPackage.ps1 = scripts\NugetPackage\NugetPackage.ps1
+		scripts\NugetPackage\NugetPackage.sh = scripts\NugetPackage\NugetPackage.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FetchNatives", "FetchNatives", "{3773C402-FBDE-4833-A304-02CDA249A35F}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\FetchNatives\fetch-natives.ps1 = scripts\FetchNatives\fetch-natives.ps1
+		scripts\FetchNatives\fetch-natives.sh = scripts\FetchNatives\fetch-natives.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ISSUE_TEMPLATE", "ISSUE_TEMPLATE", "{0601B2F3-DDF0-4AB9-9025-1730745DA04B}"
+	ProjectSection(SolutionItems) = preProject
+		.github\ISSUE_TEMPLATE\bug_report.md = .github\ISSUE_TEMPLATE\bug_report.md
+		.github\ISSUE_TEMPLATE\feature_request.md = .github\ISSUE_TEMPLATE\feature_request.md
 	EndProjectSection
 EndProject
 Global
@@ -94,6 +135,12 @@ Global
 		{E6A75818-017B-40CB-8159-B7075FD2BDBD} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{E7AF48EE-0D1F-47CD-9200-0707C3EFFAB9} = {EE6E7AAD-66BB-4783-B499-A2F868EB675F}
 		{8DFABC35-B26E-49C5-AA3B-3AD9A4C45D77} = {E7AF48EE-0D1F-47CD-9200-0707C3EFFAB9}
+		{94AD6525-446E-4715-8F69-69E77EDC750D} = {EE6E7AAD-66BB-4783-B499-A2F868EB675F}
+		{10B56A25-C2AD-4100-9FA7-029C6660C2CC} = {94AD6525-446E-4715-8F69-69E77EDC750D}
+		{E90B6838-ABDA-4339-BB2B-C2C38F06E848} = {94AD6525-446E-4715-8F69-69E77EDC750D}
+		{33B39A89-D866-4B64-8D91-1856223DF28E} = {94AD6525-446E-4715-8F69-69E77EDC750D}
+		{3773C402-FBDE-4833-A304-02CDA249A35F} = {94AD6525-446E-4715-8F69-69E77EDC750D}
+		{0601B2F3-DDF0-4AB9-9025-1730745DA04B} = {E7AF48EE-0D1F-47CD-9200-0707C3EFFAB9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {84970B55-67F0-47E5-B774-E3160FFC8D31}

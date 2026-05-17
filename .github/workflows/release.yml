@@ -71,8 +71,9 @@ jobs:
           - { runner: ubuntu-latest,    rid: linux-x64   }
           - { runner: ubuntu-24.04-arm, rid: linux-arm64 }
           - { runner: windows-latest,   rid: win-x64     }
-          - { runner: macos-13,         rid: osx-x64     }
-          - { runner: macos-14,         rid: osx-arm64   }
+          - { runner: windows-11-arm,   rid: win-arm64   }
+          - { runner: macos-15-intel,   rid: osx-x64     }
+          - { runner: macos-15,         rid: osx-arm64   }
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -94,14 +95,14 @@ jobs:
             Linux)
               sudo apt-get update
               sudo apt-get install -y libzstd1
-              bash scripts/fetch-natives.sh
+              bash scripts/FetchNatives/fetch-natives.sh
               ;;
             macOS)
               brew install zstd
-              bash scripts/fetch-natives.sh
+              bash scripts/FetchNatives/fetch-natives.sh
               ;;
             Windows)
-              pwsh scripts/fetch-natives.ps1
+              pwsh scripts/FetchNatives/fetch-natives.ps1
               ;;
           esac
 
@@ -200,8 +201,9 @@ jobs:
           - { runner: ubuntu-latest,    rid: linux-x64   }
           - { runner: ubuntu-24.04-arm, rid: linux-arm64 }
           - { runner: windows-latest,   rid: win-x64     }
-          - { runner: macos-13,         rid: osx-x64     }
-          - { runner: macos-14,         rid: osx-arm64   }
+          - { runner: windows-11-arm,   rid: win-arm64   }
+          - { runner: macos-15-intel,   rid: osx-x64     }
+          - { runner: macos-15,         rid: osx-arm64   }
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3

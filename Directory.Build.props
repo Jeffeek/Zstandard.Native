@@ -28,8 +28,9 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>zstd;zstandard;compression;native;aot;intrinsics;avx10;sve</PackageTags>
-    <Description>Ultra-fast, AOT-safe Zstandard (zstd) wrapper for .NET 8 and .NET 10 with Vector512 / AVX10 / SVE accelerated paths and zero-allocation Span APIs.</Description>
-    <PackageReadmeFile Condition="Exists('$(MSBuildThisFileDirectory)README.md')">README.md</PackageReadmeFile>
+    <Description>Ultra-fast, AOT-safe Zstandard (zstd) wrapper for .NET 8, .NET 9, and .NET 10 with Vector512 / AVX10 / SVE accelerated paths and zero-allocation Span APIs.</Description>
+    <PackageReadmeFile Condition="Exists('$(MSBuildThisFileDirectory)README.nuget.md')">README.nuget.md</PackageReadmeFile>
+    <PackageIcon Condition="Exists('$(MSBuildThisFileDirectory)icon.png')">icon.png</PackageIcon>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
@@ -38,9 +39,12 @@
     <Deterministic>true</Deterministic>
   </PropertyGroup>
 
-  <!-- README is shipped only when present and only for the packable lib. -->
-  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)README.md') AND '$(IsPackable)' != 'false'">
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  <!-- NuGet package readme and icon — packed only when present. -->
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)README.nuget.md') AND '$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)README.nuget.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)icon.png') AND '$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
   <!-- ============================================================ -->

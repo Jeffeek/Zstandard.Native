@@ -18,8 +18,8 @@
     Try to fetch every supported RID instead of just the host.
 
 .EXAMPLE
-    pwsh scripts/fetch-natives.ps1
-    pwsh scripts/fetch-natives.ps1 -Version 1.5.6 -All
+    pwsh scripts/FetchNatives/fetch-natives.ps1
+    pwsh scripts/FetchNatives/fetch-natives.ps1 -Version 1.5.6 -All
 #>
 
 [CmdletBinding()]
@@ -31,7 +31,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$repoRoot   = Resolve-Path (Join-Path $PSScriptRoot '..')
+$repoRoot   = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $runtimes   = Join-Path $repoRoot 'runtimes'
 
 function Get-HostRid {
