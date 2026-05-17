@@ -18,8 +18,8 @@
     Try to fetch every supported RID instead of just the host.
 
 .EXAMPLE
-    pwsh scripts/fetch-natives.ps1
-    pwsh scripts/fetch-natives.ps1 -Version 1.5.6 -All
+    pwsh scripts/FetchNatives/fetch-natives.ps1
+    pwsh scripts/FetchNatives/fetch-natives.ps1 -Version 1.5.6 -All
 #>
 
 [CmdletBinding()]

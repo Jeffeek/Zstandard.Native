@@ -1,4 +1,4 @@
-# Native binaries fetched by scripts/fetch-natives.{ps1,sh}.
+# Native binaries fetched by scripts/FetchNatives/fetch-natives.{ps1,sh}.
 # Tracked: the directory skeleton (via .gitkeep) and runtimes/README.md.
 runtimes/**/native/*
 !runtimes/**/native/.gitkeep
