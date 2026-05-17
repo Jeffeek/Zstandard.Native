@@ -1,24 +1,20 @@
 <Project>
-
   <!-- Central Package Management. All <PackageReference> entries across the
        repo resolve their versions from this file. Override per-project only
        when truly necessary (see eng/AotProbe/AotProbe.csproj, which carries a
        dynamic Version expression and opts out). -->
-
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
-
   <ItemGroup>
     <!-- Benchmarks -->
-    <PackageVersion Include="ZstdSharp.Port"              Version="0.8.8" />
-    <PackageVersion Include="BenchmarkDotNet"             Version="0.15.8" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="ZstdSharp.Port" Version="0.8.8" />
 
     <!-- Tests -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk"      Version="18.5.1" />
     <PackageVersion Include="xunit"                       Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio"   Version="3.1.5" />
   </ItemGroup>
-
 </Project>

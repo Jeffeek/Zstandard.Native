@@ -11,12 +11,8 @@ namespace Zstandard.Native.SafeHandles;
 /// The handle itself is thread-safe to dispose, but the underlying <c>ZSTD_CCtx</c>
 /// is not — see <see cref="ZstdStreamCompressor"/>.
 /// </remarks>
-public sealed class ZstdCompressionContextHandle : SafeHandle
+public sealed class ZstdCompressionContextHandle() : SafeHandle(nint.Zero, ownsHandle: true)
 {
-    public ZstdCompressionContextHandle() : base(nint.Zero, ownsHandle: true)
-    {
-    }
-
     public override bool IsInvalid => handle == nint.Zero;
 
     internal static ZstdCompressionContextHandle Create()

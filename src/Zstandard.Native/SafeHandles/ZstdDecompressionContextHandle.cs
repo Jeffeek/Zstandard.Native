@@ -11,12 +11,8 @@ namespace Zstandard.Native.SafeHandles;
 /// The handle itself is thread-safe to dispose, but the underlying <c>ZSTD_DCtx</c>
 /// is not — see <see cref="ZstdStreamDecompressor"/>.
 /// </remarks>
-public sealed class ZstdDecompressionContextHandle : SafeHandle
+public sealed class ZstdDecompressionContextHandle() : SafeHandle(nint.Zero, ownsHandle: true)
 {
-    public ZstdDecompressionContextHandle() : base(nint.Zero, ownsHandle: true)
-    {
-    }
-
     public override bool IsInvalid => handle == nint.Zero;
 
     internal static ZstdDecompressionContextHandle Create()
