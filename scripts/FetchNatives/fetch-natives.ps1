@@ -139,12 +139,19 @@ function Build-WindowsBinaryFromSource([string]$rid, [string]$ver, [string]$cmak
         $cmakeSrc = Join-Path $srcRoot 'build\cmake'
         $buildDir = Join-Path $tmp 'build'
 
+        # facebook/zstd v1.5.6 has a CMake bug: target_include_directories isn't
+        # propagated to the RC (resource compiler) language, so libzstd-dll.rc
+        # cannot find zstd.h. Pass /I <src>/lib explicitly to rc.exe.
+        $libInclude = (Join-Path $srcRoot 'lib').Replace('\', '/')
+        $rcFlags    = "/I `"$libInclude`""
+
         Write-Host "[$rid] cmake configure (-A $cmakeArch)"
         & cmake -S $cmakeSrc -B $buildDir -A $cmakeArch `
             -DZSTD_BUILD_SHARED=ON `
             -DZSTD_BUILD_STATIC=OFF `
             -DZSTD_BUILD_PROGRAMS=OFF `
-            -DZSTD_BUILD_TESTS=OFF
+            -DZSTD_BUILD_TESTS=OFF `
+            "-DCMAKE_RC_FLAGS=$rcFlags"
         if ($LASTEXITCODE -ne 0) { throw "[$rid] cmake configure failed (exit $LASTEXITCODE)." }
 
         Write-Host "[$rid] cmake build Release (libzstd_shared)"

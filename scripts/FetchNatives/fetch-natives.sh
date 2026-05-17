@@ -132,12 +132,19 @@ fetch_windows_from_source() {
     local src_root="${tmp}/zstd-${ver}"
     local build_dir="${tmp}/build"
 
+    # facebook/zstd v1.5.6 has a CMake bug: target_include_directories isn't
+    # propagated to the RC (resource compiler) language, so libzstd-dll.rc
+    # cannot find zstd.h. Pass /I <src>/lib explicitly to rc.exe.
+    local lib_include="${src_root}/lib"
+    local rc_flags="/I \"${lib_include}\""
+
     echo "[${rid}] cmake configure (-A ${cmake_arch})"
     cmake -S "${src_root}/build/cmake" -B "${build_dir}" -A "${cmake_arch}" \
         -DZSTD_BUILD_SHARED=ON \
         -DZSTD_BUILD_STATIC=OFF \
         -DZSTD_BUILD_PROGRAMS=OFF \
-        -DZSTD_BUILD_TESTS=OFF
+        -DZSTD_BUILD_TESTS=OFF \
+        "-DCMAKE_RC_FLAGS=${rc_flags}"
 
     echo "[${rid}] cmake build Release (libzstd_shared)"
     cmake --build "${build_dir}" --config Release --target libzstd_shared
