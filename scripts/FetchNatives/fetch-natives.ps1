@@ -31,7 +31,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$repoRoot   = Resolve-Path (Join-Path $PSScriptRoot '..')
+$repoRoot   = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $runtimes   = Join-Path $repoRoot 'runtimes'
 
 function Get-HostRid {

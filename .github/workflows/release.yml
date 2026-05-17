@@ -95,14 +95,14 @@ jobs:
             Linux)
               sudo apt-get update
               sudo apt-get install -y libzstd1
-              bash scripts/fetch-natives.sh
+              bash scripts/FetchNatives/fetch-natives.sh
               ;;
             macOS)
               brew install zstd
-              bash scripts/fetch-natives.sh
+              bash scripts/FetchNatives/fetch-natives.sh
               ;;
             Windows)
-              pwsh scripts/fetch-natives.ps1
+              pwsh scripts/FetchNatives/fetch-natives.ps1
               ;;
           esac
 

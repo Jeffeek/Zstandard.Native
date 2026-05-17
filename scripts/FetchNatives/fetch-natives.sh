@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd -- "${script_dir}/.." && pwd)"
+repo_root="$(cd -- "${script_dir}/../.." && pwd)"
 runtimes="${repo_root}/runtimes"
 
 host_rid() {

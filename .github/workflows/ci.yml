@@ -115,7 +115,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libzstd1
-          bash scripts/fetch-natives.sh
+          bash scripts/FetchNatives/fetch-natives.sh
 
       - name: Setup .NET (restore + build)
         uses: ./.github/actions/dotnet-setup
