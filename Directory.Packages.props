@@ -16,8 +16,8 @@
     <PackageVersion Include="BenchmarkDotNet"             Version="0.15.8" />
 
     <!-- Tests -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk"      Version="18.5.1" />
-    <PackageVersion Include="xunit"                       Version="2.9.2" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk"      Version="17.11.1" />
+    <PackageVersion Include="xunit"                       Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio"   Version="3.1.5" />
   </ItemGroup>
 
