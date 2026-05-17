@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
         with:
           egress-policy: audit
 
@@ -44,7 +44,7 @@ jobs:
         uses: ./.github/actions/dotnet-setup
 
       - name: ReSharper CLI InspectCode
-        uses: muno92/resharper_inspectcode@5e99b0c6b542b5fd3b938d4de201c94a882070b7 # 1.17.0
+        uses: muno92/resharper_inspectcode@9dd06702fe04cae50fe448156b398c9912d3421b # 1.17.1
         with:
           solutionPath: ./Zstandard.Native.sln
           version: 2025.3.3
