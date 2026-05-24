@@ -68,10 +68,10 @@ internal static partial class ZstdNative
     internal static partial nuint ZSTD_DCtx_setParameter(nint dctx, int param, int value);
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_CCtx_reset")]
-    internal static partial nuint ZSTD_CCtx_reset(nint cctx, int reset);
+    internal static partial nuint ZSTD_CCtx_reset(nint cctx, ZstdResetDirective reset);
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_DCtx_reset")]
-    internal static partial nuint ZSTD_DCtx_reset(nint dctx, int reset);
+    internal static partial nuint ZSTD_DCtx_reset(nint dctx, ZstdResetDirective reset);
 
     // --- streaming ---
 
@@ -132,13 +132,15 @@ internal static partial class ZstdNative
 
     internal const int ZSTD_d_windowLogMax = 100;
 
-    // ZSTD_ResetDirective
-    internal const int ZSTD_reset_session_only = 1;
-#pragma warning disable IDE0051
-    internal const int ZSTD_reset_parameters = 2;
-#pragma warning restore IDE0051
-    internal const int ZSTD_reset_session_and_parameters = 3;
     // ReSharper restore InconsistentNaming
+}
+
+// ReSharper disable once InconsistentNaming
+internal enum ZstdResetDirective
+{
+    SessionOnly = 1,
+    Parameters = 2,
+    SessionAndParameters = 3
 }
 
 [StructLayout(LayoutKind.Sequential)]
