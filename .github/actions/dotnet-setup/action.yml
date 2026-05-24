@@ -7,7 +7,7 @@ description: >
 inputs:
   solution-file:
     description: 'Solution file to restore and build'
-    default: 'Zstandard.Native.sln'
+    default: 'Zstandard.Native.slnx'
   build:
     description: 'Whether to build (Release) after restore'
     default: 'true'
