@@ -25,19 +25,21 @@ namespace Zstandard.Native;
 /// </remarks>
 public sealed class ZstdStreamDecompressor : IDisposable
 {
-    private readonly ZstdDecompressionContextHandle _handle;
     private byte[]? _scratch;
     private bool _disposed;
 
     public ZstdStreamDecompressor(int? windowLogMax = null)
     {
-        _handle = ZstdDecompressionContextHandle.Create();
+        Handle = ZstdDecompressionContextHandle.Create();
         try
         {
             if (windowLogMax is { } wlm)
             {
                 var code = ZstdNative.ZSTD_DCtx_setParameter(
-                    _handle.DangerousGet(), ZstdNative.ZSTD_d_windowLogMax, wlm);
+                    Handle.DangerousGet(),
+                    ZstdNative.ZSTD_d_windowLogMax,
+                    wlm
+                );
                 ZstdException.ThrowIfError(code);
             }
 
@@ -46,17 +48,24 @@ public sealed class ZstdStreamDecompressor : IDisposable
         }
         catch
         {
-            _handle.Dispose();
+            Handle.Dispose();
             throw;
         }
     }
 
-    public ZstdDecompressionContextHandle Handle => _handle;
+#pragma warning disable IDE0032
+    // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
+    // ReSharper disable once MemberCanBePrivate.Global
+    public ZstdDecompressionContextHandle Handle { get; private set; }
+#pragma warning restore IDE0032
 
+    // ReSharper disable once UnusedMember.Global
     public static int RecommendedOutputSize => (int)Math.Min(int.MaxValue, ZstdNative.ZSTD_DStreamOutSize());
 
+    // ReSharper disable once MemberCanBeInternal
     public static int RecommendedInputSize => (int)Math.Min(int.MaxValue, ZstdNative.ZSTD_DStreamInSize());
 
+    // ReSharper disable once UnusedMember.Global
     internal Span<byte> Scratch => _scratch.AsSpan();
 
     /// <summary>
@@ -76,7 +85,10 @@ public sealed class ZstdStreamDecompressor : IDisposable
                 var output = new ZSTD_outBuffer { dst = dstPtr, size = (nuint)destination.Length, pos = 0 };
 
                 var ret = ZstdNative.ZSTD_decompressStream(
-                    _handle.DangerousGet(), &output, &input);
+                    Handle.DangerousGet(),
+                    &output,
+                    &input
+                );
 
                 ZstdException.ThrowIfError(ret);
 
@@ -92,17 +104,18 @@ public sealed class ZstdStreamDecompressor : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         var code = ZstdNative.ZSTD_DCtx_reset(
-            _handle.DangerousGet(),
-            resetParameters ? ZstdNative.ZSTD_reset_session_and_parameters : ZstdNative.ZSTD_reset_session_only);
+            Handle.DangerousGet(),
+            resetParameters
+                ? ZstdNative.ZSTD_reset_session_and_parameters
+                : ZstdNative.ZSTD_reset_session_only);
         ZstdException.ThrowIfError(code);
     }
 
     public void Dispose()
     {
         if (_disposed)
-        {
             return;
-        }
+
         _disposed = true;
 
         var scratch = _scratch;
@@ -113,6 +126,6 @@ public sealed class ZstdStreamDecompressor : IDisposable
             ArrayPool<byte>.Shared.Return(scratch, clearArray: false);
         }
 
-        _handle.Dispose();
+        Handle.Dispose();
     }
 }

@@ -34,11 +34,9 @@ public static class ZstdCompressor
     {
         ArgumentOutOfRangeException.ThrowIfNegative(srcSize);
         var bound = ZstdNative.ZSTD_compressBound((nuint)srcSize);
-        if (bound > int.MaxValue)
-        {
-            throw new ArgumentOutOfRangeException(nameof(srcSize), "Compressed bound exceeds Int32.MaxValue.");
-        }
-        return (int)bound;
+        return bound > int.MaxValue
+            ? throw new ArgumentOutOfRangeException(nameof(srcSize), "Compressed bound exceeds Int32.MaxValue.")
+            : (int)bound;
     }
 
     /// <summary>
@@ -48,12 +46,11 @@ public static class ZstdCompressor
     public static int Compress(
         ReadOnlySpan<byte> source,
         Span<byte> destination,
-        int compressionLevel = DefaultCompressionLevel)
+        int compressionLevel = DefaultCompressionLevel
+    )
     {
         if ((uint)(compressionLevel - MinCompressionLevel) > MaxCompressionLevel - MinCompressionLevel)
-        {
             ThrowLevelOutOfRange(compressionLevel);
-        }
 
         unsafe
         {
@@ -61,9 +58,12 @@ public static class ZstdCompressor
             fixed (byte* dstPtr = &MemoryMarshal.GetReference(destination))
             {
                 var written = ZstdNative.ZSTD_compress(
-                    dstPtr, (nuint)destination.Length,
-                    srcPtr, (nuint)source.Length,
-                    compressionLevel);
+                    dstPtr,
+                    (nuint)destination.Length,
+                    srcPtr,
+                    (nuint)source.Length,
+                    compressionLevel
+                );
 
                 ZstdException.ThrowIfError(written);
                 return checked((int)written);
@@ -83,8 +83,11 @@ public static class ZstdCompressor
             fixed (byte* dstPtr = &MemoryMarshal.GetReference(destination))
             {
                 var written = ZstdNative.ZSTD_decompress(
-                    dstPtr, (nuint)destination.Length,
-                    srcPtr, (nuint)source.Length);
+                    dstPtr,
+                    (nuint)destination.Length,
+                    srcPtr,
+                    (nuint)source.Length
+                );
 
                 ZstdException.ThrowIfError(written);
                 return checked((int)written);

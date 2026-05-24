@@ -53,9 +53,9 @@ public class EdgeCaseTests
     [Fact]
     public void Compression_Level_Out_Of_Range_Throws()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<ArgumentOutOfRangeException>(static () =>
             ZstdCompressor.Compress(new byte[16], new byte[128], compressionLevel: 100));
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<ArgumentOutOfRangeException>(static () =>
             ZstdCompressor.Compress(new byte[16], new byte[128], compressionLevel: 0));
     }
 
@@ -75,9 +75,7 @@ public class EdgeCaseTests
     public void Large_Payload_Over_2GB_RoundTrips()
     {
         if (!string.Equals(Environment.GetEnvironmentVariable("ZSTD_RUN_LARGE_TESTS"), "1", StringComparison.Ordinal))
-        {
             return; // soft skip — keeps the test discoverable but cheap on CI
-        }
 
         // 2 GiB + 64 MiB — exceeds Int32.MaxValue/2 boundary, exercises 64-bit size paths.
         const long sz = (1L << 31) + (64L << 20);
@@ -91,9 +89,7 @@ public class EdgeCaseTests
             {
                 // Fill with a compressible pattern.
                 for (long i = 0; i < sz; i++)
-                {
                     src[i] = (byte)(i & 0x3F);
-                }
 
                 var srcSpan = new Span<byte>(src, checked((int)Math.Min(sz, int.MaxValue)));
                 var dstLen = ZstdCompressor.GetCompressBound(srcSpan.Length);

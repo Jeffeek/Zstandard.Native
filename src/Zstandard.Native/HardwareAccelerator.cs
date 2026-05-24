@@ -45,9 +45,7 @@ public static class HardwareAccelerator
     public static void ClearBuffer(Span<byte> buffer)
     {
         if (buffer.IsEmpty)
-        {
             return;
-        }
 
         if (Vector512.IsHardwareAccelerated && buffer.Length >= Vector512<byte>.Count)
         {
@@ -72,13 +70,9 @@ public static class HardwareAccelerator
         nuint i = 0;
         var zero = Vector512<byte>.Zero;
         for (; i + vlen <= len; i += vlen)
-        {
             zero.StoreUnsafe(ref dst, i);
-        }
         if (i < len)
-        {
             MemoryMarshal.CreateSpan(ref Unsafe.Add(ref dst, i), (int)(len - i)).Clear();
-        }
     }
 
     private static void ClearVector256(Span<byte> buffer)
@@ -89,13 +83,9 @@ public static class HardwareAccelerator
         nuint i = 0;
         var zero = Vector256<byte>.Zero;
         for (; i + vlen <= len; i += vlen)
-        {
             zero.StoreUnsafe(ref dst, i);
-        }
         if (i < len)
-        {
             MemoryMarshal.CreateSpan(ref Unsafe.Add(ref dst, i), (int)(len - i)).Clear();
-        }
     }
 
     private static bool DetectAcceleration() => DetectAcceleratorKind() != AcceleratorKind.None;
@@ -104,25 +94,20 @@ public static class HardwareAccelerator
     {
 #if NET10_0_OR_GREATER
 #pragma warning disable SYSLIB5003 // Sve is marked experimental in some SDKs.
+#pragma warning disable IDE0046 // Convert if-then to return statement (we want to preserve the short-circuiting behavior here).
+        // Resharper disable: ConvertToReturnStatement
         if (Sve.IsSupported)
-        {
             return AcceleratorKind.Sve;
-        }
+#pragma warning restore IDE0046
 #pragma warning restore SYSLIB5003
 #endif
-
-        if (Vector512.IsHardwareAccelerated)
-        {
+        return Vector512.IsHardwareAccelerated
+            ?
             // On .NET 10 the JIT folds AVX-512F and AVX10 into the same Vector512 codegen.
-            return AcceleratorKind.Vector512;
-        }
-
-        if (Vector256.IsHardwareAccelerated)
-        {
-            return AcceleratorKind.Vector256;
-        }
-
-        return AcceleratorKind.None;
+            AcceleratorKind.Vector512
+            : Vector256.IsHardwareAccelerated
+                ? AcceleratorKind.Vector256
+                : AcceleratorKind.None;
     }
 }
 
@@ -131,5 +116,5 @@ public enum AcceleratorKind
     None = 0,
     Vector256 = 1,
     Vector512 = 2,
-    Sve = 3,
+    Sve = 3
 }

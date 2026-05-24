@@ -13,18 +13,23 @@ internal static partial class ZstdNative
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_compress")]
     internal static unsafe partial nuint ZSTD_compress(
-        void* dst, nuint dstCapacity,
-        void* src, nuint srcSize,
-        int compressionLevel);
+        void* dst,
+        nuint dstCapacity,
+        void* src,
+        nuint srcSize,
+        int compressionLevel
+    );
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_decompress")]
     internal static unsafe partial nuint ZSTD_decompress(
-        void* dst, nuint dstCapacity,
-        void* src, nuint compressedSize);
+        void* dst,
+        nuint dstCapacity,
+        void* src,
+        nuint compressedSize
+    );
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_getFrameContentSize")]
-    internal static unsafe partial ulong ZSTD_getFrameContentSize(
-        void* src, nuint srcSize);
+    internal static unsafe partial ulong ZSTD_getFrameContentSize(void* src, nuint srcSize);
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_isError")]
     [return: MarshalAs(UnmanagedType.U4)]
@@ -37,6 +42,7 @@ internal static partial class ZstdNative
     internal static partial nint ZSTD_getErrorName(nuint code);
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_versionNumber")]
+    // ReSharper disable once UnusedMember.Global
     internal static partial uint ZSTD_versionNumber();
 
     // --- context lifecycle ---
@@ -71,11 +77,20 @@ internal static partial class ZstdNative
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_compressStream2")]
     internal static unsafe partial nuint ZSTD_compressStream2(
-        nint cctx, ZSTD_outBuffer* output, ZSTD_inBuffer* input, int endOp);
+        // ReSharper disable once IdentifierTypo
+        nint cctx,
+        ZSTD_outBuffer* output,
+        ZSTD_inBuffer* input,
+        int endOp
+    );
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_decompressStream")]
     internal static unsafe partial nuint ZSTD_decompressStream(
-        nint dctx, ZSTD_outBuffer* output, ZSTD_inBuffer* input);
+        // ReSharper disable once IdentifierTypo
+        nint dctx,
+        ZSTD_outBuffer* output,
+        ZSTD_inBuffer* input
+    );
 
     [LibraryImport(LibraryName, EntryPoint = "ZSTD_CStreamInSize")]
     internal static partial nuint ZSTD_CStreamInSize();
@@ -93,8 +108,12 @@ internal static partial class ZstdNative
 
     [LibraryImport(LibraryName, EntryPoint = "ZDICT_trainFromBuffer")]
     internal static unsafe partial nuint ZDICT_trainFromBuffer(
-        void* dictBuffer, nuint dictBufferCapacity,
-        void* samplesBuffer, nuint* samplesSizes, uint nbSamples);
+        void* dictBuffer,
+        nuint dictBufferCapacity,
+        void* samplesBuffer,
+        nuint* samplesSizes,
+        uint nbSamples
+    );
 
     [LibraryImport(LibraryName, EntryPoint = "ZDICT_isError")]
     internal static partial uint ZDICT_isError(nuint code);
@@ -115,7 +134,9 @@ internal static partial class ZstdNative
 
     // ZSTD_ResetDirective
     internal const int ZSTD_reset_session_only = 1;
+#pragma warning disable IDE0051
     internal const int ZSTD_reset_parameters = 2;
+#pragma warning restore IDE0051
     internal const int ZSTD_reset_session_and_parameters = 3;
     // ReSharper restore InconsistentNaming
 }

@@ -1,3 +1,5 @@
+<!--EXTERNAL_PROPERTIES: IsPackable-->
+<!--EXTERNAL_PROPERTIES: GITHUB_ACTIONS-->
 <Project>
 
   <!-- ============================================================ -->
@@ -16,7 +18,7 @@
   <!-- Centralized NuGet metadata. Applied only to packable projects -->
   <!-- so PackageId / RepositoryUrl don't bleed into the test and    -->
   <!-- benchmark projects (which would create an ambiguous-project   -->
-  <!-- error against the ProjectReference).                          -->
+  <!-- error against the ProjectReference.                          -->
   <!-- ============================================================ -->
   <PropertyGroup Condition="'$(IsPackable)' != 'false'">
     <Authors>Zstandard.Native contributors</Authors>

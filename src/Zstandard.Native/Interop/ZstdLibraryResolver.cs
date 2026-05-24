@@ -18,9 +18,7 @@ internal static class ZstdLibraryResolver
 #pragma warning restore CA2255
     {
         if (Interlocked.Exchange(ref _registered, 1) == 1)
-        {
             return;
-        }
 
         NativeLibrary.SetDllImportResolver(typeof(ZstdNative).Assembly, Resolve);
     }
@@ -28,16 +26,12 @@ internal static class ZstdLibraryResolver
     private static nint Resolve(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
         if (!string.Equals(libraryName, ZstdNative.LibraryName, StringComparison.Ordinal))
-        {
             return nint.Zero;
-        }
 
         foreach (var candidate in EnumerateCandidates())
         {
             if (NativeLibrary.TryLoad(candidate, assembly, searchPath, out var handle))
-            {
                 return handle;
-            }
         }
 
         return nint.Zero;
@@ -51,7 +45,7 @@ internal static class ZstdLibraryResolver
             Architecture.X86 => "x86",
             Architecture.Arm64 => "arm64",
             Architecture.Arm => "arm",
-            _ => RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
+            _ => RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant()
         };
 
         string rid;
@@ -84,6 +78,7 @@ internal static class ZstdLibraryResolver
             yield return fileName;
         }
         else
+            // ReSharper disable once RemoveRedundantBraces
         {
             yield return ZstdNative.LibraryName;
         }

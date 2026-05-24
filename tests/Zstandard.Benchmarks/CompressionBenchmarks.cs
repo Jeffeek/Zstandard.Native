@@ -7,11 +7,14 @@ namespace Zstandard.Benchmarks;
 /// Head-to-head: Zstandard.Native (libzstd P/Invoke, AOT-safe) vs ZstdSharp.Port
 /// (managed translation). Reports time, allocations, and computed MB/s.
 /// </summary>
-[Config(typeof(BenchConfig))]
-[MemoryDiagnoser]
-[GcServer(true)]
-// ReSharper disable once RedundantArgumentDefaultValue
-[GcConcurrent(true)]
+[
+    Config(typeof(BenchConfig)),
+    MemoryDiagnoser,
+    GcServer(true),
+    // ReSharper disable once RedundantArgumentDefaultValue
+    GcConcurrent(true)
+]
+// ReSharper disable once ClassCanBeSealed.Global
 public class CompressionBenchmarks
 {
     [Params(4 * 1024, 64 * 1024, 1 * 1024 * 1024, 16 * 1024 * 1024)]
@@ -40,9 +43,7 @@ public class CompressionBenchmarks
         var rng = new Random(42);
         rng.NextBytes(_payload);
         for (var i = 0; i < _payload.Length; i += 32)
-        {
             _payload[i] = 0;
-        }
 
         var bound = ZstdCompressor.GetCompressBound(PayloadSize);
         _native_dst = new byte[bound];

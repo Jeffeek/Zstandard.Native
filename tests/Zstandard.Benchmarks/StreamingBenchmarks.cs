@@ -7,8 +7,11 @@ namespace Zstandard.Benchmarks;
 /// Measures the streaming path with context reuse — the realistic case for
 /// repeated invocations (e.g. per-message compression on a hot socket).
 /// </summary>
-[Config(typeof(BenchConfig))]
-[MemoryDiagnoser]
+[
+    Config(typeof(BenchConfig)),
+    MemoryDiagnoser
+]
+// ReSharper disable once ClassCanBeSealed.Global
 public class StreamingBenchmarks
 {
     [Params(64 * 1024, 1 * 1024 * 1024)]

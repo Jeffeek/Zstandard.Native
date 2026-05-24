@@ -21,17 +21,13 @@ public sealed class ZstdException : Exception
     /// Creates a new <see cref="ZstdException"/>. Intended for internal use; consumers
     /// should catch this type rather than construct it.
     /// </summary>
-    public ZstdException(string message, nuint errorCode) : base(message)
-    {
-        ErrorCode = errorCode;
-    }
+    // ReSharper disable once MemberCanBeInternal
+    public ZstdException(string message, nuint errorCode) : base(message) => ErrorCode = errorCode;
 
     internal static void ThrowIfError(nuint code)
     {
         if (ZstdNative.ZSTD_isError(code) != 0)
-        {
             Throw(code);
-        }
     }
 
     private static void Throw(nuint code)

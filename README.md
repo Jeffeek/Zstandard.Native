@@ -591,8 +591,8 @@ IterationCount=3  LaunchCount=1  WarmupCount=3
 Run the benchmarks yourself:
 
 ```bash
-dotnet run -c Release --project samples/Zstandard.Benchmarks -- --filter "*CompressionBenchmarks*"
-dotnet run -c Release --project samples/Zstandard.Benchmarks -- --filter "*StreamingBenchmarks*"
+dotnet run -c Release --project tests/Zstandard.Benchmarks -- --filter "*CompressionBenchmarks*"
+dotnet run -c Release --project tests/Zstandard.Benchmarks -- --filter "*StreamingBenchmarks*"
 ```
 
 The harness runs six jobs (JIT + NativeAOT for .NET 8, 9, and 10) and adds a custom `MB/s` column. Results are sensitive to CPU microarchitecture, power profile, and available ISA extensions — run on your target hardware before drawing conclusions.

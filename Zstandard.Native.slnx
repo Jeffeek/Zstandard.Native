@@ -1,0 +1,61 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution files/">
+    <File Path=".gitignore" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE" />
+    <File Path="NuGet.config" />
+    <File Path="README.md" />
+    <File Path="SECURITY.md" />
+    <File Path="Zstandard.Native.sln.DotSettings" />
+    <File Path="Zstandard.Native.sln.DotSettings.user" />
+  </Folder>
+  <Folder Name="/Solution files/.github/">
+    <File Path=".github/dependabot.yml" />
+  </Folder>
+  <Folder Name="/Solution files/.github/ISSUE_TEMPLATE/">
+    <File Path=".github/ISSUE_TEMPLATE/bug_report.md" />
+    <File Path=".github/ISSUE_TEMPLATE/feature_request.md" />
+  </Folder>
+  <Folder Name="/Solution files/.github/workflows/">
+    <File Path=".github/actions/dotnet-setup/action.yml" />
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/codeql.yml" />
+    <File Path=".github/workflows/dependency-review.yml" />
+    <File Path=".github/workflows/nuget-activity-monitor.yml" />
+    <File Path=".github/workflows/publish.yml" />
+    <File Path=".github/workflows/release.yml" />
+    <File Path=".github/workflows/resharper-analysis.yml" />
+    <File Path=".github/workflows/scorecard.yml" />
+  </Folder>
+  <Folder Name="/Solution files/Scripts/" />
+  <Folder Name="/Solution files/Scripts/Build/">
+    <File Path="scripts/Build/Build.ps1" />
+    <File Path="scripts/Build/Build.sh" />
+  </Folder>
+  <Folder Name="/Solution files/Scripts/FetchNatives/">
+    <File Path="scripts/FetchNatives/fetch-natives.ps1" />
+    <File Path="scripts/FetchNatives/fetch-natives.sh" />
+  </Folder>
+  <Folder Name="/Solution files/Scripts/NugetPackage/">
+    <File Path="scripts/NugetPackage/NugetPackage.ps1" />
+    <File Path="scripts/NugetPackage/NugetPackage.sh" />
+  </Folder>
+  <Folder Name="/Solution files/Scripts/Release/">
+    <File Path="scripts/Release/Release.ps1" />
+    <File Path="scripts/Release/Release.sh" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Zstandard.Native/Zstandard.Native.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Zstandard.Benchmarks/Zstandard.Benchmarks.csproj" />
+    <Project Path="tests/Zstandard.Native.Tests/Zstandard.Native.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -10,7 +10,7 @@ public enum ZstdEndDirective
     /// <summary>Flush any buffered data; frame stays open.</summary>
     Flush = 1,
     /// <summary>Flush and close the frame.</summary>
-    End = 2,
+    End = 2
 }
 
 /// <summary>

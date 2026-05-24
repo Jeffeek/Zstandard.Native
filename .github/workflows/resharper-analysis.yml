@@ -46,7 +46,7 @@ jobs:
       - name: ReSharper CLI InspectCode
         uses: muno92/resharper_inspectcode@9dd06702fe04cae50fe448156b398c9912d3421b # 1.17.1
         with:
-          solutionPath: ./Zstandard.Native.sln
+          solutionPath: ./Zstandard.Native.slnx
           version: 2025.3.3
           failOnIssue: '1'
           noBuild: true

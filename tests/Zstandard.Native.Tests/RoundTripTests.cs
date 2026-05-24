@@ -2,13 +2,16 @@ using Xunit;
 
 namespace Zstandard.Native.Tests;
 
+// ReSharper disable once ClassCanBeSealed.Global
 public class RoundTripTests
 {
-    [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    [InlineData(9)]
-    [InlineData(19)]
+    [
+        Theory,
+        InlineData(1),
+        InlineData(3),
+        InlineData(9),
+        InlineData(19)
+    ]
     public void Compress_Decompress_RoundTrip_Equals_Original(int level)
     {
         var src = new byte[256 * 1024];
@@ -38,12 +41,14 @@ public class RoundTripTests
         Assert.Equal(src.Length, size);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(7)]
-    [InlineData(63)]
-    [InlineData(65_537)]
+    [
+        Theory,
+        InlineData(0),
+        InlineData(1),
+        InlineData(7),
+        InlineData(63),
+        InlineData(65_537)
+    ]
     public void Various_Sizes_RoundTrip(int size)
     {
         var src = new byte[size];
