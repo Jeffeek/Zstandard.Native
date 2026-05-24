@@ -13,7 +13,6 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Zstandard.Native.Runtime</AssemblyName>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- No managed code — no symbols or docs to produce -->
@@ -34,8 +33,18 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(RuntimePackageRid)' != ''">
+    <!-- Derive a human-readable platform tag from the RID (e.g. win-x64 → windows) -->
+    <_Platform Condition="$(RuntimePackageRid.StartsWith('win'))">windows</_Platform>
+    <_Platform Condition="$(RuntimePackageRid.StartsWith('linux'))">linux</_Platform>
+    <_Platform Condition="$(RuntimePackageRid.StartsWith('osx'))">macos</_Platform>
+
+    <!-- Per-RID icon: assets/icons/icon-{rid}.png (placeholder = repo root icon.png until replaced) -->
+    <_IconPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\assets\icons\icon-$(RuntimePackageRid).png'))</_IconPath>
+
+    <!-- SuppressDependenciesWhenPacking is intentionally absent: NuspecFile overrides
+         the generated nuspec entirely, so that property would be a no-op anyway. -->
     <NuspecFile>$(MSBuildThisFileDirectory)Zstandard.Native.Runtime.nuspec</NuspecFile>
-    <NuspecProperties>rid=$(RuntimePackageRid);version=$(PackageVersion);nativepath=$(_NativePath)</NuspecProperties>
+    <NuspecProperties>rid=$(RuntimePackageRid);version=$(PackageVersion);nativepath=$(_NativePath);platform=$(_Platform);iconpath=$(_IconPath);reporoot=$(MSBuildThisFileDirectory)..\..\</NuspecProperties>
   </PropertyGroup>
 
   <Target Name="ValidateRuntimePackageRid" BeforeTargets="Pack">

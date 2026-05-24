@@ -21,7 +21,27 @@
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <EnableAotAnalyzer>false</EnableAotAnalyzer>
     <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
+    <!-- Override the repo-root icon.png that Directory.Build.props would include -->
+    <PackageIcon>icon-runtimes.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Remove the generic icon.png added by Directory.Build.props -->
+    <None Remove="$(MSBuildThisFileDirectory)..\..\icon.png" />
+    <!-- Use the Runtimes-specific icon -->
+    <None Include="$(MSBuildThisFileDirectory)..\..\assets\icons\icon-runtimes.png"
+          Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <!--
+    Guard: this project must only be packed with an explicit release version.
+    The default dev suffix (0.1.0-dev) would attempt to resolve per-RID packages
+    from nuget.org where they don't exist, producing a confusing restore error.
+  -->
+  <Target Name="ValidatePackageVersion" BeforeTargets="Restore;Pack">
+    <Error Condition="$(PackageVersion.EndsWith('-dev'))"
+           Text="Zstandard.Native.Runtimes is CI-only. Pass -p:PackageVersion=X.Y.Z (no -dev suffix) when packing." />
+  </Target>
 
   <ItemGroup>
     <!--

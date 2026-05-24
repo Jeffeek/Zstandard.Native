@@ -161,36 +161,33 @@ jobs:
             ls -la "runtimes/${rid}/native/"
           done
 
-      - name: Pack per-RID runtime packages
+      - name: Pack all packages
         # PACK_COMMANDS_START
         shell: bash
+        timeout-minutes: 20
         run: |
           set -euo pipefail
+          VERSION="${{ needs.version.outputs.version }}"
+          OUT="./artifacts/nupkg"
+
+          # 1. Per-RID binary carrier packages
           for rid in win-x64 win-arm64 linux-x64 linux-arm64 osx-x64 osx-arm64; do
             dotnet pack src/Zstandard.Native.Runtime/Zstandard.Native.Runtime.csproj \
-              -c Release \
-              --output ./artifacts/nupkg \
-              -p:PackageVersion=${{ needs.version.outputs.version }} \
-              -p:RuntimePackageRid=$rid
+              -c Release --output "$OUT" \
+              -p:PackageVersion="$VERSION" \
+              -p:RuntimePackageRid="$rid"
           done
 
-      - name: Pack Zstandard.Native.Runtimes meta-package
-        shell: bash
-        run: |
-          set -euo pipefail
+          # 2. Meta-package (resolves per-RID deps from the local feed written above)
           dotnet pack src/Zstandard.Native.Runtimes/Zstandard.Native.Runtimes.csproj \
-            -c Release \
-            --output ./artifacts/nupkg \
-            -p:PackageVersion=${{ needs.version.outputs.version }}
+            -c Release --output "$OUT" \
+            -p:PackageVersion="$VERSION"
 
-      - name: Pack Zstandard.Native (managed-only)
-        run: >
-          dotnet pack src/Zstandard.Native/Zstandard.Native.csproj
-          -c Release
-          --output ./artifacts/nupkg
-          -p:PackageVersion=${{ needs.version.outputs.version }}
+          # 3. Managed-only core package
+          dotnet pack src/Zstandard.Native/Zstandard.Native.csproj \
+            -c Release --output "$OUT" \
+            -p:PackageVersion="$VERSION"
         # PACK_COMMANDS_END
-        timeout-minutes: 20
 
       - name: Inspect pack contents
         shell: bash
@@ -198,7 +195,10 @@ jobs:
           set -euo pipefail
           for nupkg in artifacts/nupkg/*.nupkg; do
             echo "=== $nupkg ==="
-            unzip -l "$nupkg" | grep -E "lib/|runtimes/|<dependency" || true
+            # List files in the archive
+            unzip -l "$nupkg" | grep -E "lib/|runtimes/" || true
+            # Extract and print the nuspec to show dependencies and metadata
+            unzip -p "$nupkg" "*.nuspec" 2>/dev/null | grep -E "<dependency|<id>|<version>" || true
           done
 
       - name: Upload nupkg artifact

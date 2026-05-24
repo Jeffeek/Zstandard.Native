@@ -8,10 +8,15 @@
     <projectUrl>https://github.com/Jeffeek/Zstandard.Native</projectUrl>
     <repository type="git" url="https://github.com/Jeffeek/Zstandard.Native" />
     <license type="expression">MIT</license>
-    <tags>zstd zstandard compression native $rid$</tags>
+    <icon>icon.png</icon>
+    <readme>README.nuget.md</readme>
+    <tags>zstd zstandard compression native $platform$</tags>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
   </metadata>
   <files>
-    <file src="$nativepath$" target="runtimes/$rid$/native/" />
+    <file src="$nativepath$"        target="runtimes/$rid$/native/" />
+    <!-- $iconpath$ resolves to assets/icons/icon-{rid}.png; packed as icon.png inside the nupkg -->
+    <file src="$iconpath$"          target="icon.png" />
+    <file src="$reporoot$README.nuget.md" target="" />
   </files>
 </package>

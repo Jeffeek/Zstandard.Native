@@ -11,5 +11,77 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
+  <!-- ============================================================ -->
+  <!-- Native runtime binaries — local build only, not packed.       -->
+  <!-- Copied next to the output so ProjectReference consumers and   -->
+  <!-- the CI verify job can load libzstd without a system install.  -->
+  <!-- Packing is handled by Zstandard.Native.Runtime (per-RID).    -->
+  <!-- ============================================================ -->
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\libzstd.dll')">
+      <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\libzstd.dll">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Link>runtimes\win-x64\native\libzstd.dll</Link>
+          <Visible>false</Visible>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\runtimes\win-arm64\native\libzstd.dll')">
+      <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-arm64\native\libzstd.dll">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Link>runtimes\win-arm64\native\libzstd.dll</Link>
+          <Visible>false</Visible>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\runtimes\linux-x64\native\libzstd.so')">
+      <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\linux-x64\native\libzstd.so">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Link>runtimes\linux-x64\native\libzstd.so</Link>
+          <Visible>false</Visible>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\runtimes\linux-arm64\native\libzstd.so')">
+      <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\linux-arm64\native\libzstd.so">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Link>runtimes\linux-arm64\native\libzstd.so</Link>
+          <Visible>false</Visible>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\runtimes\osx-x64\native\libzstd.dylib')">
+      <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\osx-x64\native\libzstd.dylib">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Link>runtimes\osx-x64\native\libzstd.dylib</Link>
+          <Visible>false</Visible>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="Exists('$(MSBuildThisFileDirectory)..\..\runtimes\osx-arm64\native\libzstd.dylib')">
+      <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\osx-arm64\native\libzstd.dylib">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <Link>runtimes\osx-arm64\native\libzstd.dylib</Link>
+          <Visible>false</Visible>
+        </None>
+      </ItemGroup>
+    </When>
+  </Choose>
 
 </Project>
