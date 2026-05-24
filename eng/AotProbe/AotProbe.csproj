@@ -27,6 +27,8 @@
   <ItemGroup>
     <!-- Version is set on the dotnet CLI by the workflow. -->
     <PackageReference Include="Zstandard.Native" Version="$(ZstandardNativeVersion)" />
+    <!-- Pulls in the per-RID libzstd binary so the probe can actually load it at runtime. -->
+    <PackageReference Include="Zstandard.Native.Runtimes" Version="$(ZstandardNativeVersion)" />
   </ItemGroup>
 
 </Project>

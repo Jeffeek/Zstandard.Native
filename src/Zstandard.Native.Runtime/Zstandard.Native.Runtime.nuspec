@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>Zstandard.Native.$rid$</id>
+    <version>$version$</version>
+    <authors>Zstandard.Native contributors</authors>
+    <description>Native libzstd binary for $rid$. Install alongside Zstandard.Native for per-RID deployments.</description>
+    <projectUrl>https://github.com/Jeffeek/Zstandard.Native</projectUrl>
+    <repository type="git" url="https://github.com/Jeffeek/Zstandard.Native" />
+    <license type="expression">MIT</license>
+    <tags>zstd zstandard compression native $rid$</tags>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+  </metadata>
+  <files>
+    <file src="$nativepath$" target="runtimes/$rid$/native/" />
+  </files>
+</package>

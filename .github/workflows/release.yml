@@ -161,8 +161,29 @@ jobs:
             ls -la "runtimes/${rid}/native/"
           done
 
-      - name: Pack
+      - name: Pack per-RID runtime packages
         # PACK_COMMANDS_START
+        shell: bash
+        run: |
+          set -euo pipefail
+          for rid in win-x64 win-arm64 linux-x64 linux-arm64 osx-x64 osx-arm64; do
+            dotnet pack src/Zstandard.Native.Runtime/Zstandard.Native.Runtime.csproj \
+              -c Release \
+              --output ./artifacts/nupkg \
+              -p:PackageVersion=${{ needs.version.outputs.version }} \
+              -p:RuntimePackageRid=$rid
+          done
+
+      - name: Pack Zstandard.Native.Runtimes meta-package
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet pack src/Zstandard.Native.Runtimes/Zstandard.Native.Runtimes.csproj \
+            -c Release \
+            --output ./artifacts/nupkg \
+            -p:PackageVersion=${{ needs.version.outputs.version }}
+
+      - name: Pack Zstandard.Native (managed-only)
         run: >
           dotnet pack src/Zstandard.Native/Zstandard.Native.csproj
           -c Release
@@ -177,7 +198,7 @@ jobs:
           set -euo pipefail
           for nupkg in artifacts/nupkg/*.nupkg; do
             echo "=== $nupkg ==="
-            unzip -l "$nupkg" | grep -E "lib/|runtimes/" || true
+            unzip -l "$nupkg" | grep -E "lib/|runtimes/|<dependency" || true
           done
 
       - name: Upload nupkg artifact
@@ -250,6 +271,7 @@ jobs:
             <packageSourceMapping>
               <packageSource key="local">
                 <package pattern="Zstandard.Native" />
+                <package pattern="Zstandard.Native.*" />
               </packageSource>
               <packageSource key="nuget.org">
                 <package pattern="*" />
