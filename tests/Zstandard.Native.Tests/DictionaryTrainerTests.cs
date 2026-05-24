@@ -2,6 +2,7 @@ using Xunit;
 
 namespace Zstandard.Native.Tests;
 
+// ReSharper disable once ClassCanBeSealed.Global
 public class DictionaryTrainerTests
 {
     [Fact]
@@ -51,6 +52,7 @@ public class DictionaryTrainerTests
             buf.Write(bytes, 0, bytes.Length);
             sizes[i] = (nuint)bytes.Length;
         }
+
         return (buf.ToArray(), sizes);
     }
 }

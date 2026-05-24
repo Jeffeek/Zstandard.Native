@@ -60,12 +60,11 @@ public static class ZstdDictionaryTrainer
     public static int Train(
         ReadOnlySpan<byte> samples,
         ReadOnlySpan<nuint> sampleSizes,
-        Span<byte> dictionary)
+        Span<byte> dictionary
+    )
     {
         if (sampleSizes.IsEmpty)
-        {
             throw new ArgumentException("At least one sample is required.", nameof(sampleSizes));
-        }
 
         unsafe
         {
@@ -74,13 +73,15 @@ public static class ZstdDictionaryTrainer
             fixed (byte* dictPtr = &MemoryMarshal.GetReference(dictionary))
             {
                 var written = ZstdNative.ZDICT_trainFromBuffer(
-                    dictPtr, (nuint)dictionary.Length,
-                    samplesPtr, sizesPtr, (uint)sampleSizes.Length);
+                    dictPtr,
+                    (nuint)dictionary.Length,
+                    samplesPtr,
+                    sizesPtr,
+                    (uint)sampleSizes.Length
+                );
 
                 if (ZstdNative.ZDICT_isError(written) != 0)
-                {
                     ThrowZdictError(written);
-                }
 
                 return checked((int)written);
             }
@@ -91,6 +92,7 @@ public static class ZstdDictionaryTrainer
     {
         var ptr = ZstdNative.ZDICT_getErrorName(code);
         var name = ptr == nint.Zero ? "unknown ZDICT error" : Marshal.PtrToStringUTF8(ptr) ?? "unknown ZDICT error";
+
         throw new ZstdException($"ZDICT error: {name}", code);
     }
 }

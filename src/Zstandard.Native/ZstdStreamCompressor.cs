@@ -28,24 +28,19 @@ namespace Zstandard.Native;
 /// </remarks>
 public sealed class ZstdStreamCompressor : IDisposable
 {
-    private readonly ZstdCompressionContextHandle _handle;
     private byte[]? _scratch;
     private bool _disposed;
 
     public ZstdStreamCompressor(int compressionLevel = 3, bool writeChecksum = false, int workerThreads = 0)
     {
-        _handle = ZstdCompressionContextHandle.Create();
+        Handle = ZstdCompressionContextHandle.Create();
         try
         {
             SetParameter(ZstdNative.ZSTD_c_compressionLevel, compressionLevel);
             if (writeChecksum)
-            {
                 SetParameter(ZstdNative.ZSTD_c_checksumFlag, 1);
-            }
             if (workerThreads > 0)
-            {
                 SetParameter(ZstdNative.ZSTD_c_nbWorkers, workerThreads);
-            }
 
             // Allocate a recommended-size scratch buffer up front so streaming
             // callers can borrow it without re-renting per call.
@@ -54,7 +49,7 @@ public sealed class ZstdStreamCompressor : IDisposable
         }
         catch
         {
-            _handle.Dispose();
+            Handle.Dispose();
             throw;
         }
     }
@@ -62,22 +57,29 @@ public sealed class ZstdStreamCompressor : IDisposable
     /// <summary>
     /// The native context handle. Exposed for advanced scenarios; do not free directly.
     /// </summary>
-    public ZstdCompressionContextHandle Handle => _handle;
+    // ReSharper disable once UnusedMember.Global
+    // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
+    // ReSharper disable once MemberCanBePrivate.Global
+    public ZstdCompressionContextHandle Handle { get; private set; }
 
     /// <summary>
     /// Recommended output buffer size for a single streaming call.
     /// </summary>
+    // ReSharper disable once UnusedMember.Global
+    // ReSharper disable once MemberCanBeInternal
     public static int RecommendedOutputSize => (int)Math.Min(int.MaxValue, ZstdNative.ZSTD_CStreamOutSize());
 
     /// <summary>
     /// Recommended input buffer size for a single streaming call.
     /// </summary>
+    // ReSharper disable once UnusedMember.Global
     public static int RecommendedInputSize => (int)Math.Min(int.MaxValue, ZstdNative.ZSTD_CStreamInSize());
 
     /// <summary>
     /// Borrow the internal scratch buffer (pooled). The slice is valid until the next
     /// call that uses scratch or until <see cref="Dispose"/>.
     /// </summary>
+    // ReSharper disable once UnusedMember.Global
     internal Span<byte> Scratch => _scratch.AsSpan();
 
     /// <summary>
@@ -88,7 +90,8 @@ public sealed class ZstdStreamCompressor : IDisposable
     public ZstdStreamResult Compress(
         ReadOnlySpan<byte> source,
         Span<byte> destination,
-        ZstdEndDirective endOp = ZstdEndDirective.Continue)
+        ZstdEndDirective endOp = ZstdEndDirective.Continue
+    )
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -101,7 +104,11 @@ public sealed class ZstdStreamCompressor : IDisposable
                 var output = new ZSTD_outBuffer { dst = dstPtr, size = (nuint)destination.Length, pos = 0 };
 
                 var remaining = ZstdNative.ZSTD_compressStream2(
-                    _handle.DangerousGet(), &output, &input, (int)endOp);
+                    Handle.DangerousGet(),
+                    &output,
+                    &input,
+                    (int)endOp
+                );
 
                 ZstdException.ThrowIfError(remaining);
 
@@ -109,7 +116,7 @@ public sealed class ZstdStreamCompressor : IDisposable
                 {
                     ZstdEndDirective.End => remaining == 0,
                     ZstdEndDirective.Flush => remaining == 0,
-                    _ => input.pos == input.size,
+                    _ => input.pos == input.size
                 };
 
                 return new ZstdStreamResult(
@@ -127,23 +134,22 @@ public sealed class ZstdStreamCompressor : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         var code = ZstdNative.ZSTD_CCtx_reset(
-            _handle.DangerousGet(),
+            Handle.DangerousGet(),
             resetParameters ? ZstdNative.ZSTD_reset_session_and_parameters : ZstdNative.ZSTD_reset_session_only);
         ZstdException.ThrowIfError(code);
     }
 
     private void SetParameter(int param, int value)
     {
-        var code = ZstdNative.ZSTD_CCtx_setParameter(_handle.DangerousGet(), param, value);
+        var code = ZstdNative.ZSTD_CCtx_setParameter(Handle.DangerousGet(), param, value);
         ZstdException.ThrowIfError(code);
     }
 
     public void Dispose()
     {
         if (_disposed)
-        {
             return;
-        }
+
         _disposed = true;
 
         var scratch = _scratch;
@@ -154,6 +160,6 @@ public sealed class ZstdStreamCompressor : IDisposable
             ArrayPool<byte>.Shared.Return(scratch, clearArray: false);
         }
 
-        _handle.Dispose();
+        Handle.Dispose();
     }
 }

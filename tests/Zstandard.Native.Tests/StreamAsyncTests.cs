@@ -2,6 +2,7 @@ using Xunit;
 
 namespace Zstandard.Native.Tests;
 
+// ReSharper disable once ClassCanBeSealed.Global
 public class StreamAsyncTests
 {
     [Fact]
@@ -12,9 +13,7 @@ public class StreamAsyncTests
 
         using var compressed = new MemoryStream();
         await using (var cs = new ZstdCompressionStream(compressed, leaveOpen: true))
-        {
             await cs.WriteAsync(src);
-        }
 
         compressed.Position = 0;
         await using var ds = new ZstdDecompressionStream(compressed, leaveOpen: true);
@@ -43,9 +42,7 @@ public class StreamAsyncTests
         var src = new byte[] { 0xDE, 0xAD, 0xBE, 0xEF };
         var compressed = new MemoryStream();
         await using (var cs = new ZstdCompressionStream(compressed, leaveOpen: true))
-        {
             await cs.WriteAsync(src);
-        }
 
         compressed.Position = 0;
         await using var ds = new ZstdDecompressionStream(compressed);
@@ -64,9 +61,7 @@ public class StreamAsyncTests
     {
         var sink = new MemoryStream();
         await using (var cs = new ZstdCompressionStream(sink, leaveOpen: true))
-        {
             await cs.WriteAsync(new byte[] { 1, 2, 3, 4, 5 });
-        }
         // After DisposeAsync the frame must decode cleanly.
 
         sink.Position = 0;

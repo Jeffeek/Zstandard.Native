@@ -1,3 +1,5 @@
+<!--EXTERNAL_PROPERTIES: IsPackable-->
+<!--EXTERNAL_PROPERTIES: GITHUB_ACTIONS-->
 <Project>
 
   <!-- ============================================================ -->

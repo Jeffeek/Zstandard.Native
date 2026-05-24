@@ -24,6 +24,7 @@ public sealed class ZstdCompressionContextHandle() : SafeHandle(nint.Zero, ownsH
             h.Dispose();
             throw new ZstdException("ZSTD_createCCtx returned null.", 0);
         }
+
         h.SetHandle(ptr);
         return h;
     }

@@ -25,7 +25,7 @@ public sealed class BenchConfig : ManualConfig
         SummaryStyle = SummaryStyle.Default.WithTimeUnit(TimeUnit.Microsecond);
     }
 
-    private void AddVersionGroup(string version, CoreRuntime coreRuntime, NativeAotRuntime nativeAotRuntime)
+    private void AddVersionGroup(string version, Runtime coreRuntime, Runtime nativeAotRuntime)
     {
         AddJob(Job.Default
             .WithRuntime(coreRuntime)
@@ -59,18 +59,14 @@ public sealed class ThroughputColumn : IColumn
     public string GetValue(Summary summary, BenchmarkDotNet.Running.BenchmarkCase benchmarkCase, SummaryStyle style)
     {
         var sizeParam = benchmarkCase.Parameters.Items
-            .FirstOrDefault(p => string.Equals(p.Name, "PayloadSize", StringComparison.Ordinal));
-        if (sizeParam?.Value is not int size || size <= 0)
-        {
+            .FirstOrDefault(static p => string.Equals(p.Name, "PayloadSize", StringComparison.Ordinal));
+        if (sizeParam?.Value is not (int size and > 0))
             return "—";
-        }
 
         var report = summary[benchmarkCase];
         var meanNs = report?.ResultStatistics?.Mean;
         if (meanNs is null or <= 0)
-        {
             return "—";
-        }
 
         var mbPerSec = size / (meanNs.Value / 1_000_000_000d) / 1_000_000d;
         return mbPerSec.ToString("F1");

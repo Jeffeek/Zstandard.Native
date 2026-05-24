@@ -35,9 +35,7 @@ public sealed class ZstdDecompressionStream : Stream
     {
         ArgumentNullException.ThrowIfNull(source);
         if (!source.CanRead)
-        {
             throw new ArgumentException("Source stream must be readable.", nameof(source));
-        }
 
         _inner = source;
         _leaveOpen = leaveOpen;
@@ -74,7 +72,10 @@ public sealed class ZstdDecompressionStream : Stream
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
     /// <inheritdoc />
-    public override void Flush() { /* Read-only stream: nothing to flush. */ }
+    public override void Flush()
+    {
+         /* Read-only stream: nothing to flush. */
+    }
 
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
@@ -88,9 +89,7 @@ public sealed class ZstdDecompressionStream : Stream
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (buffer.IsEmpty)
-        {
             return 0;
-        }
 
         var totalWritten = 0;
         while (totalWritten < buffer.Length)
@@ -101,9 +100,7 @@ public sealed class ZstdDecompressionStream : Stream
                 _inBufLen = _inner.Read(_inBuf.AsSpan());
                 _inBufPos = 0;
                 if (_inBufLen == 0)
-                {
                     _innerEof = true;
-                }
             }
 
             var inSlice = _inBuf.AsSpan(_inBufPos, _inBufLen - _inBufPos);
@@ -114,15 +111,11 @@ public sealed class ZstdDecompressionStream : Stream
             totalWritten += r.BytesWritten;
 
             if (r.IsCompleted && _innerEof && _inBufPos >= _inBufLen)
-            {
                 break;
-            }
 
             // No progress and no more input available: end-of-stream.
-            if (r.BytesConsumed == 0 && r.BytesWritten == 0)
-            {
+            if (r is (0, 0, _))
                 break;
-            }
         }
 
         return totalWritten;
@@ -137,7 +130,12 @@ public sealed class ZstdDecompressionStream : Stream
     }
 
     /// <inheritdoc />
-    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    public override async Task<int> ReadAsync(
+        byte[] buffer,
+        int offset,
+        int count,
+        CancellationToken cancellationToken
+    )
     {
         ValidateBufferArguments(buffer, offset, count);
         return await ReadAsync(buffer.AsMemory(offset, count), cancellationToken).ConfigureAwait(false);
@@ -149,9 +147,7 @@ public sealed class ZstdDecompressionStream : Stream
         ObjectDisposedException.ThrowIf(_disposed, this);
         cancellationToken.ThrowIfCancellationRequested();
         if (buffer.IsEmpty)
-        {
             return 0;
-        }
 
         var totalWritten = 0;
         while (totalWritten < buffer.Length)
@@ -161,9 +157,7 @@ public sealed class ZstdDecompressionStream : Stream
                 _inBufLen = await _inner.ReadAsync(_inBuf.AsMemory(), cancellationToken).ConfigureAwait(false);
                 _inBufPos = 0;
                 if (_inBufLen == 0)
-                {
                     _innerEof = true;
-                }
             }
 
             var inSlice = _inBuf.AsSpan(_inBufPos, _inBufLen - _inBufPos);
@@ -174,13 +168,10 @@ public sealed class ZstdDecompressionStream : Stream
             totalWritten += r.BytesWritten;
 
             if (r.IsCompleted && _innerEof && _inBufPos >= _inBufLen)
-            {
                 break;
-            }
-            if (r is { BytesConsumed: 0, BytesWritten: 0 })
-            {
+
+            if (r is (0, 0, _))
                 break;
-            }
         }
 
         return totalWritten;
@@ -193,22 +184,16 @@ public sealed class ZstdDecompressionStream : Stream
     public override async ValueTask DisposeAsync()
     {
         if (_disposed)
-        {
             return;
-        }
 
         _decompressor.Dispose();
         var buf = _inBuf;
         _inBuf = null;
         if (buf is not null)
-        {
             ArrayPool<byte>.Shared.Return(buf);
-        }
 
         if (!_leaveOpen)
-        {
             await _inner.DisposeAsync().ConfigureAwait(false);
-        }
 
         _disposed = true;
         // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
@@ -219,9 +204,7 @@ public sealed class ZstdDecompressionStream : Stream
     protected override void Dispose(bool disposing)
     {
         if (_disposed)
-        {
             return;
-        }
 
         if (disposing)
         {
@@ -229,14 +212,10 @@ public sealed class ZstdDecompressionStream : Stream
             var buf = _inBuf;
             _inBuf = null;
             if (buf is not null)
-            {
                 ArrayPool<byte>.Shared.Return(buf);
-            }
 
             if (!_leaveOpen)
-            {
                 _inner.Dispose();
-            }
         }
 
         _disposed = true;

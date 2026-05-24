@@ -43,9 +43,7 @@ public sealed class ZstdCompressionStream : Stream
     {
         ArgumentNullException.ThrowIfNull(destination);
         if (!destination.CanWrite)
-        {
             throw new ArgumentException("Destination stream must be writable.", nameof(destination));
-        }
 
         _inner = destination;
         _leaveOpen = leaveOpen;
@@ -98,14 +96,13 @@ public sealed class ZstdCompressionStream : Stream
             // ReSharper disable once RedundantArgumentDefaultValue
             var r = _compressor.Compress(remaining, _outBuf, ZstdEndDirective.Continue);
             if (r.BytesWritten > 0)
-            {
                 _inner.Write(_outBuf.AsSpan(0, r.BytesWritten));
-            }
-            if (r is { BytesConsumed: 0, BytesWritten: 0 })
+            if (r is (0, 0, _))
             {
                 // Should never happen on a valid context, but guard against an infinite loop.
                 throw new ZstdException("ZstdCompressionStream made no progress on Write.", 0);
             }
+
             remaining = remaining[r.BytesConsumed..];
         }
     }
@@ -113,8 +110,7 @@ public sealed class ZstdCompressionStream : Stream
     /// <inheritdoc />
     public override void WriteByte(byte value)
     {
-        Span<byte> one = stackalloc byte[1];
-        one[0] = value;
+        Span<byte> one = [value];
         Write(one);
     }
 
@@ -132,18 +128,19 @@ public sealed class ZstdCompressionStream : Stream
         {
             var r = _compressor.Compress(default, _outBuf, directive);
             if (r.BytesWritten > 0)
-            {
                 _inner.Write(_outBuf.AsSpan(0, r.BytesWritten));
-            }
             if (r.IsCompleted)
-            {
                 break;
-            }
         }
     }
 
     /// <inheritdoc />
-    public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    public override async Task WriteAsync(
+        byte[] buffer,
+        int offset,
+        int count,
+        CancellationToken cancellationToken
+    )
     {
         ValidateBufferArguments(buffer, offset, count);
         await WriteAsync(buffer.AsMemory(offset, count), cancellationToken).ConfigureAwait(false);
@@ -160,14 +157,10 @@ public sealed class ZstdCompressionStream : Stream
         {
             // ReSharper disable once RedundantArgumentDefaultValue
             var r = _compressor.Compress(remaining.Span, _outBuf, ZstdEndDirective.Continue);
-            if (r.BytesWritten > 0)
-            {
-                await _inner.WriteAsync(_outBuf.AsMemory(0, r.BytesWritten), cancellationToken).ConfigureAwait(false);
-            }
-            if (r is { BytesConsumed: 0, BytesWritten: 0 })
-            {
+            if (r.BytesWritten > 0) await _inner.WriteAsync(_outBuf.AsMemory(0, r.BytesWritten), cancellationToken).ConfigureAwait(false);
+            if (r is (0, 0, _))
                 throw new ZstdException("ZstdCompressionStream made no progress on WriteAsync.", 0);
-            }
+
             remaining = remaining[r.BytesConsumed..];
         }
     }
@@ -187,13 +180,9 @@ public sealed class ZstdCompressionStream : Stream
         {
             var r = _compressor.Compress(default, _outBuf, directive);
             if (r.BytesWritten > 0)
-            {
                 await _inner.WriteAsync(_outBuf.AsMemory(0, r.BytesWritten), cancellationToken).ConfigureAwait(false);
-            }
             if (r.IsCompleted)
-            {
                 break;
-            }
         }
     }
 
@@ -201,9 +190,7 @@ public sealed class ZstdCompressionStream : Stream
     public override async ValueTask DisposeAsync()
     {
         if (_disposed)
-        {
             return;
-        }
 
         try
         {
@@ -219,14 +206,10 @@ public sealed class ZstdCompressionStream : Stream
             var buf = _outBuf;
             _outBuf = null;
             if (buf is not null)
-            {
                 ArrayPool<byte>.Shared.Return(buf);
-            }
 
             if (!_leaveOpen)
-            {
                 await _inner.DisposeAsync().ConfigureAwait(false);
-            }
 
             _disposed = true;
             // ReSharper disable once GCSuppressFinalizeForTypeWithoutDestructor
@@ -238,9 +221,7 @@ public sealed class ZstdCompressionStream : Stream
     protected override void Dispose(bool disposing)
     {
         if (_disposed)
-        {
             return;
-        }
 
         if (disposing)
         {
@@ -258,14 +239,10 @@ public sealed class ZstdCompressionStream : Stream
                 var buf = _outBuf;
                 _outBuf = null;
                 if (buf is not null)
-                {
                     ArrayPool<byte>.Shared.Return(buf);
-                }
 
                 if (!_leaveOpen)
-                {
                     _inner.Dispose();
-                }
             }
         }
 

@@ -2,12 +2,15 @@ using Xunit;
 
 namespace Zstandard.Native.Tests;
 
+// ReSharper disable once ClassCanBeSealed.Global
 public class StreamAdapterTests
 {
-    [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    [InlineData(9)]
+    [
+        Theory,
+        InlineData(1),
+        InlineData(3),
+        InlineData(9)
+    ]
     public void Compression_Then_Decompression_Streams_RoundTrip(int level)
     {
         var src = new byte[256 * 1024];
@@ -15,9 +18,7 @@ public class StreamAdapterTests
 
         using var compressed = new MemoryStream();
         using (var cs = new ZstdCompressionStream(compressed, compressionLevel: level, leaveOpen: true))
-        {
             cs.Write(src, 0, src.Length);
-        }
 
         compressed.Position = 0;
         using var ds = new ZstdDecompressionStream(compressed, leaveOpen: true);
@@ -66,9 +67,7 @@ public class StreamAdapterTests
         var src = new byte[] { 1, 2, 3, 4, 5 };
         var compressed = new MemoryStream();
         using (var cs = new ZstdCompressionStream(compressed, leaveOpen: true))
-        {
             cs.Write(src);
-        }
 
         compressed.Position = 0;
         var ds = new ZstdDecompressionStream(compressed, leaveOpen: true);
