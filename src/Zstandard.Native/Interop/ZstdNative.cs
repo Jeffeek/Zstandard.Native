@@ -139,6 +139,7 @@ internal static partial class ZstdNative
 internal enum ZstdResetDirective
 {
     SessionOnly = 1,
+    // ReSharper disable once UnusedMember.Global
     Parameters = 2,
     SessionAndParameters = 3
 }
