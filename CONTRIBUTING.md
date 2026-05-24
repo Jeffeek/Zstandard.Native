@@ -38,8 +38,8 @@ If a section feels too strict for your change, open an issue and we'll talk befo
 git clone https://github.com/Jeffeek/Zstandard.Native
 cd Zstandard.Native
 
-dotnet restore Zstandard.Native.sln
-dotnet build   Zstandard.Native.sln -c Release -warnaserror
+dotnet restore Zstandard.Native.slnx
+dotnet build   Zstandard.Native.slnx -c Release -warnaserror
 dotnet test    tests/Zstandard.Native.Tests
 ```
 

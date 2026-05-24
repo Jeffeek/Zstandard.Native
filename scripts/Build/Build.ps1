@@ -27,7 +27,7 @@ Write-Host "  Step 1/4: Cleaning solution..." -ForegroundColor Yellow
 Write-Host "======================================" -ForegroundColor Yellow
 Write-Host ""
 
-dotnet clean Zstandard.Native.sln -c $Configuration
+dotnet clean Zstandard.Native.slnx -c $Configuration
 if ($LASTEXITCODE -ne 0) { Write-Host "Error: Clean failed!" -ForegroundColor Red; exit 1 }
 
 Write-Host ""
@@ -39,7 +39,7 @@ Write-Host "  Step 2/4: Restoring dependencies..." -ForegroundColor Yellow
 Write-Host "======================================" -ForegroundColor Yellow
 Write-Host ""
 
-dotnet restore Zstandard.Native.sln
+dotnet restore Zstandard.Native.slnx
 if ($LASTEXITCODE -ne 0) { Write-Host "Error: Restore failed!" -ForegroundColor Red; exit 1 }
 
 Write-Host ""
@@ -51,7 +51,7 @@ Write-Host "  Step 3/4: Building solution..." -ForegroundColor Yellow
 Write-Host "======================================" -ForegroundColor Yellow
 Write-Host ""
 
-dotnet build Zstandard.Native.sln -c $Configuration --no-restore -warnaserror
+dotnet build Zstandard.Native.slnx -c $Configuration --no-restore -warnaserror
 if ($LASTEXITCODE -ne 0) { Write-Host "Error: Build failed!" -ForegroundColor Red; exit 1 }
 
 Write-Host ""

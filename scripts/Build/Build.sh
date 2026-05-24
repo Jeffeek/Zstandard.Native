@@ -44,7 +44,7 @@ echo -e "${YELLOW}======================================${NC}"
 echo -e "${YELLOW}  Step 1/4: Cleaning solution...${NC}"
 echo -e "${YELLOW}======================================${NC}"
 echo ""
-if ! dotnet clean Zstandard.Native.sln -c "$CONFIGURATION"; then
+if ! dotnet clean Zstandard.Native.slnx -c "$CONFIGURATION"; then
     echo -e "${RED}Error: Clean failed!${NC}"
     exit 1
 fi
@@ -55,7 +55,7 @@ echo -e "${YELLOW}======================================${NC}"
 echo -e "${YELLOW}  Step 2/4: Restoring dependencies...${NC}"
 echo -e "${YELLOW}======================================${NC}"
 echo ""
-if ! dotnet restore Zstandard.Native.sln; then
+if ! dotnet restore Zstandard.Native.slnx; then
     echo -e "${RED}Error: Restore failed!${NC}"
     exit 1
 fi
@@ -66,7 +66,7 @@ echo -e "${YELLOW}======================================${NC}"
 echo -e "${YELLOW}  Step 3/4: Building solution...${NC}"
 echo -e "${YELLOW}======================================${NC}"
 echo ""
-if ! dotnet build Zstandard.Native.sln -c "$CONFIGURATION" --no-restore -warnaserror; then
+if ! dotnet build Zstandard.Native.slnx -c "$CONFIGURATION" --no-restore -warnaserror; then
     echo -e "${RED}Error: Build failed!${NC}"
     exit 1
 fi
