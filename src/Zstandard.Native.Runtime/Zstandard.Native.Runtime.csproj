@@ -1,0 +1,57 @@
+<!--EXTERNAL_PROPERTIES: RuntimePackageRid-->
+<!--EXTERNAL_PROPERTIES: PackageVersion-->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Per-RID native binary carrier package.
+    Pack with: dotnet pack -p:RuntimePackageRid=win-x64
+    Supported values: win-x64  win-arm64  linux-x64  linux-arm64  osx-x64  osx-arm64
+
+    Uses a .nuspec template (Zstandard.Native.Runtime.nuspec) so the native
+    binary is included directly without fighting MSBuild item-evaluation ordering.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- No managed code — no symbols or docs to produce -->
+    <IncludeSymbols>false</IncludeSymbols>
+    <!-- No managed code — disable analyzers that have nothing to check here -->
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsTrimmable>false</IsTrimmable>
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>false</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <_NativeExt Condition="$(RuntimePackageRid.StartsWith('win'))">.dll</_NativeExt>
+    <_NativeExt Condition="$(RuntimePackageRid.StartsWith('linux'))">.so</_NativeExt>
+    <_NativeExt Condition="$(RuntimePackageRid.StartsWith('osx'))">.dylib</_NativeExt>
+    <_NativePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\runtimes\$(RuntimePackageRid)\native\libzstd$(_NativeExt)'))</_NativePath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimePackageRid)' != ''">
+    <!-- Derive a human-readable platform tag from the RID (e.g. win-x64 → windows) -->
+    <_Platform Condition="$(RuntimePackageRid.StartsWith('win'))">windows</_Platform>
+    <_Platform Condition="$(RuntimePackageRid.StartsWith('linux'))">linux</_Platform>
+    <_Platform Condition="$(RuntimePackageRid.StartsWith('osx'))">macos</_Platform>
+
+    <!-- Per-RID icon: assets/icons/icon-{rid}.png (placeholder = repo root icon.png until replaced) -->
+    <_IconPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\assets\icons\icon-$(RuntimePackageRid).png'))</_IconPath>
+
+    <!-- SuppressDependenciesWhenPacking is intentionally absent: NuspecFile overrides
+         the generated nuspec entirely, so that property would be a no-op anyway. -->
+    <NuspecFile>$(MSBuildThisFileDirectory)Zstandard.Native.Runtime.nuspec</NuspecFile>
+    <NuspecProperties>rid=$(RuntimePackageRid);version=$(PackageVersion);nativepath=$(_NativePath);platform=$(_Platform);iconpath=$(_IconPath);reporoot=$(MSBuildThisFileDirectory)..\..\</NuspecProperties>
+  </PropertyGroup>
+
+  <Target Name="ValidateRuntimePackageRid" BeforeTargets="Pack">
+    <Error Condition="'$(RuntimePackageRid)' == ''"
+           Text="Specify -p:RuntimePackageRid=&lt;rid&gt; (e.g. win-x64) when packing this project." />
+    <Error Condition="!Exists('$(_NativePath)')"
+           Text="Native binary not found at '$(_NativePath)'. Run scripts/FetchNatives/fetch-natives.{ps1,sh} first." />
+  </Target>
+
+</Project>

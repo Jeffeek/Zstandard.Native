@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Meta-package: pulls in all six per-RID libzstd binary packages as dependencies.
+    NuGet resolves the correct RID's binary at publish time.
+
+    This project is NOT included in the solution — it is only packed during the
+    release CI pipeline, after the per-RID packages are available on the local feed.
+    Local dev: dotnet pack will fail to restore because per-RID packages don't yet
+    exist on nuget.org; that is expected and correct.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageId>Zstandard.Native.Runtimes</PackageId>
+    <Description>Meta-package that pulls in all per-RID Zstandard.Native runtime binaries. Add alongside Zstandard.Native for automatic binary resolution on all supported platforms.</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsTrimmable>false</IsTrimmable>
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>false</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
+    <!-- Override the repo-root icon.png that Directory.Build.props would include -->
+    <PackageIcon>icon-runtimes.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Remove the generic icon.png added by Directory.Build.props -->
+    <None Remove="$(MSBuildThisFileDirectory)..\..\icon.png" />
+    <!-- Use the Runtimes-specific icon -->
+    <None Include="$(MSBuildThisFileDirectory)..\..\assets\icons\icon-runtimes.png"
+          Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <!--
+    Guard: this project must only be packed with an explicit release version.
+    The default dev suffix (0.1.0-dev) would attempt to resolve per-RID packages
+    from nuget.org where they don't exist, producing a confusing restore error.
+  -->
+  <Target Name="ValidatePackageVersion" BeforeTargets="Restore;Pack">
+    <Error Condition="$(PackageVersion.EndsWith('-dev'))"
+           Text="Zstandard.Native.Runtimes is CI-only. Pass -p:PackageVersion=X.Y.Z (no -dev suffix) when packing." />
+  </Target>
+
+  <ItemGroup>
+    <!--
+      ExcludeAssets="all"  — don't consume any compile/runtime assets from these packages
+                             (they ship only runtimes/{rid}/native/ content anyway)
+      PrivateAssets="none" — these deps DO appear in the generated nuspec, so consumers
+                             of Zstandard.Native.Runtimes get the per-RID binaries
+    -->
+    <PackageReference Include="Zstandard.Native.win-x64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.win-arm64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.linux-x64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.linux-arm64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.osx-x64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.osx-arm64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
+  </ItemGroup>
+
+</Project>

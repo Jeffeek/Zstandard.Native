@@ -23,6 +23,13 @@ jobs:
         package:
           # PACKAGE_LIST_START
           - 'Zstandard.Native'
+          - 'Zstandard.Native.Runtimes'
+          - 'Zstandard.Native.win-x64'
+          - 'Zstandard.Native.win-arm64'
+          - 'Zstandard.Native.linux-x64'
+          - 'Zstandard.Native.linux-arm64'
+          - 'Zstandard.Native.osx-x64'
+          - 'Zstandard.Native.osx-arm64'
           # PACKAGE_LIST_END
       fail-fast: false
 

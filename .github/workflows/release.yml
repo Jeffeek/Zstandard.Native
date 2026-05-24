@@ -161,15 +161,33 @@ jobs:
             ls -la "runtimes/${rid}/native/"
           done
 
-      - name: Pack
+      - name: Pack all packages
         # PACK_COMMANDS_START
-        run: >
-          dotnet pack src/Zstandard.Native/Zstandard.Native.csproj
-          -c Release
-          --output ./artifacts/nupkg
-          -p:PackageVersion=${{ needs.version.outputs.version }}
-        # PACK_COMMANDS_END
+        shell: bash
         timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.version.outputs.version }}"
+          OUT="./artifacts/nupkg"
+
+          # 1. Per-RID binary carrier packages
+          for rid in win-x64 win-arm64 linux-x64 linux-arm64 osx-x64 osx-arm64; do
+            dotnet pack src/Zstandard.Native.Runtime/Zstandard.Native.Runtime.csproj \
+              -c Release --output "$OUT" \
+              -p:PackageVersion="$VERSION" \
+              -p:RuntimePackageRid="$rid"
+          done
+
+          # 2. Meta-package (resolves per-RID deps from the local feed written above)
+          dotnet pack src/Zstandard.Native.Runtimes/Zstandard.Native.Runtimes.csproj \
+            -c Release --output "$OUT" \
+            -p:PackageVersion="$VERSION"
+
+          # 3. Managed-only core package
+          dotnet pack src/Zstandard.Native/Zstandard.Native.csproj \
+            -c Release --output "$OUT" \
+            -p:PackageVersion="$VERSION"
+        # PACK_COMMANDS_END
 
       - name: Inspect pack contents
         shell: bash
@@ -177,7 +195,10 @@ jobs:
           set -euo pipefail
           for nupkg in artifacts/nupkg/*.nupkg; do
             echo "=== $nupkg ==="
+            # List files in the archive
             unzip -l "$nupkg" | grep -E "lib/|runtimes/" || true
+            # Extract and print the nuspec to show dependencies and metadata
+            unzip -p "$nupkg" "*.nuspec" 2>/dev/null | grep -E "<dependency|<id>|<version>" || true
           done
 
       - name: Upload nupkg artifact
@@ -250,6 +271,7 @@ jobs:
             <packageSourceMapping>
               <packageSource key="local">
                 <package pattern="Zstandard.Native" />
+                <package pattern="Zstandard.Native.*" />
               </packageSource>
               <packageSource key="nuget.org">
                 <package pattern="*" />

@@ -53,6 +53,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Zstandard.Native/Zstandard.Native.csproj" />
+    <Project Path="src/Zstandard.Native.Runtime/Zstandard.Native.Runtime.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Zstandard.Benchmarks/Zstandard.Benchmarks.csproj" />
