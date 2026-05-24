@@ -106,8 +106,8 @@ public sealed class ZstdStreamDecompressor : IDisposable
         var code = ZstdNative.ZSTD_DCtx_reset(
             Handle.DangerousGet(),
             resetParameters
-                ? ZstdNative.ZSTD_reset_session_and_parameters
-                : ZstdNative.ZSTD_reset_session_only);
+                ? ZstdResetDirective.SessionAndParameters
+                : ZstdResetDirective.SessionOnly);
         ZstdException.ThrowIfError(code);
     }
 

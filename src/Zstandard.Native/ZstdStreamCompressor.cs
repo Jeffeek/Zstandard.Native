@@ -135,7 +135,9 @@ public sealed class ZstdStreamCompressor : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         var code = ZstdNative.ZSTD_CCtx_reset(
             Handle.DangerousGet(),
-            resetParameters ? ZstdNative.ZSTD_reset_session_and_parameters : ZstdNative.ZSTD_reset_session_only);
+            resetParameters
+                ? ZstdResetDirective.SessionAndParameters
+                : ZstdResetDirective.SessionOnly);
         ZstdException.ThrowIfError(code);
     }
 
