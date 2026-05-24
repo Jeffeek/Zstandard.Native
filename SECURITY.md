@@ -80,7 +80,7 @@ The following are not considered security vulnerabilities:
 - Issues in the bundled or system-supplied `libzstd` binary (report upstream at [facebook/zstd](https://github.com/facebook/zstd)).
 - Issues requiring physical machine access.
 - Social engineering.
-- Issues in sample / benchmark code (`samples/`, `eng/AotProbe`).
+- Issues in sample / benchmark code (`tests/Zstandard.Benchmarks`, `eng/AotProbe`).
 
 ### Best Practices
 

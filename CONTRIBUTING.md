@@ -98,7 +98,7 @@ Add at least:
 
 ### 6. Benchmark (if perf-relevant)
 
-Add a benchmark in `samples/Zstandard.Benchmarks` with `[MemoryDiagnoser]` and a sensible `[Params]` sweep. Compare against `ZstdSharp.Port` when there's a counterpart.
+Add a benchmark in `tests/Zstandard.Benchmarks` with `[MemoryDiagnoser]` and a sensible `[Params]` sweep. Compare against `ZstdSharp.Port` when there's a counterpart.
 
 ### 7. XML docs
 

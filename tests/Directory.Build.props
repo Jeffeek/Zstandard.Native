@@ -3,6 +3,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
 
   <PropertyGroup>
+    <!-- Samples host BenchmarkDotNet, which is reflection-heavy. Relax library-grade AOT enforcement. -->
     <IsAotCompatible>false</IsAotCompatible>
     <IsTrimmable>false</IsTrimmable>
     <EnableAotAnalyzer>false</EnableAotAnalyzer>
