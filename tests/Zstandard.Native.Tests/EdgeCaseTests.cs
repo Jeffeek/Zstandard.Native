@@ -67,6 +67,15 @@ public class EdgeCaseTests
         Assert.Throws<ZstdException>(() => ZstdCompressor.Compress(src, new byte[1]));
     }
 
+    [Fact]
+    public void ZstdException_Constructor_ExposesErrorCode()
+    {
+        const nuint code = 42u;
+        var ex = new ZstdException("test message", code);
+        Assert.Equal("test message", ex.Message);
+        Assert.Equal(code, ex.ErrorCode);
+    }
+
     /// <summary>
     /// Verifies the codec can handle payloads larger than Int32.MaxValue / 2 (i.e. real >2GB inputs).
     /// Allocates ~2.5 GiB plus a compressed-bound staging buffer, so it is gated behind an env var.
