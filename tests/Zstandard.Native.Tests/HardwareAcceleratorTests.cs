@@ -36,4 +36,8 @@ public class HardwareAcceleratorTests
         else
             Assert.Equal(AcceleratorKind.None, HardwareAccelerator.ActiveAccelerator);
     }
+
+    [Fact]
+    public void ClearBuffer_Empty_DoesNotThrow()
+        => HardwareAccelerator.ClearBuffer([]);
 }
