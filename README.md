@@ -1,7 +1,9 @@
 # Zstandard.Native
 
 [![ci](https://github.com/Jeffeek/Zstandard.Native/actions/workflows/ci.yml/badge.svg)](https://github.com/Jeffeek/Zstandard.Native/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Jeffeek/Zstandard.Native/branch/master/graph/badge.svg)](https://codecov.io/gh/Jeffeek/Zstandard.Native)
 [![codeql](https://github.com/Jeffeek/Zstandard.Native/actions/workflows/codeql.yml/badge.svg)](https://github.com/Jeffeek/Zstandard.Native/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Jeffeek/Zstandard.Native/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Jeffeek/Zstandard.Native)
 [![NuGet](https://img.shields.io/nuget/v/Zstandard.Native.svg)](https://www.nuget.org/packages/Zstandard.Native)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
