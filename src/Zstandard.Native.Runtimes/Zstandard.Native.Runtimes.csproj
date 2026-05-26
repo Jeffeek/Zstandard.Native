@@ -16,6 +16,7 @@
     <Description>Meta-package that pulls in all per-RID Zstandard.Native runtime binaries. Add alongside Zstandard.Native for automatic binary resolution on all supported platforms.</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IncludeSymbols>false</IncludeSymbols>
     <IsAotCompatible>false</IsAotCompatible>
     <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
