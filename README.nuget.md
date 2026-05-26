@@ -58,7 +58,7 @@ foreach (var frame in frames)
 | One-shot compress vs ZstdSharp, 64 KB level 3 | AOT 10.0 | **+37% faster** | **0 B** vs 64 B |
 | One-shot compress vs ZstdSharp, 1 MiB level 1 | AOT 10.0 | **+37% faster** | **0 B** vs 65 B |
 
-[Full benchmark tables →](https://github.com/Jeffeek/Zstandard.Native#performance)
+[Full benchmark tables →](https://github.com/Jeffeek/Zstandard.Native/blob/master/tests/Zstandard.Benchmarks/README.md)
 
 ## Links
 
