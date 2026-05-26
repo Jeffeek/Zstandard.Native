@@ -23,6 +23,10 @@
     <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
     <!-- Override the repo-root icon.png that Directory.Build.props would include -->
     <PackageIcon>icon-runtimes.png</PackageIcon>
+    <!-- CPM forbids inline Version= on PackageReference; opt out because these
+         refs use $(PackageVersion) which is resolved at pack time, not from
+         Directory.Packages.props. Same pattern as eng/AotProbe. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
