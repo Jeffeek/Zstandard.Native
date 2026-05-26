@@ -178,7 +178,9 @@ jobs:
               -p:RuntimePackageRid="$rid"
           done
 
-          # 2. Meta-package (resolves per-RID deps from the local feed written above)
+          # 2. Meta-package — register the just-packed per-RID packages as a local
+          #    feed so NuGet can resolve them and write the deps into the nuspec.
+          dotnet nuget add source "$PWD/$OUT" --name local-nupkg
           dotnet pack src/Zstandard.Native.Runtimes/Zstandard.Native.Runtimes.csproj \
             -c Release --output "$OUT" \
             -p:PackageVersion="$VERSION"
