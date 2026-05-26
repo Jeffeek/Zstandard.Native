@@ -16,6 +16,7 @@
     <Description>Meta-package that pulls in all per-RID Zstandard.Native runtime binaries. Add alongside Zstandard.Native for automatic binary resolution on all supported platforms.</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IncludeSymbols>false</IncludeSymbols>
     <IsAotCompatible>false</IsAotCompatible>
     <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
@@ -23,6 +24,13 @@
     <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
     <!-- Override the repo-root icon.png that Directory.Build.props would include -->
     <PackageIcon>icon-runtimes.png</PackageIcon>
+    <!-- NU5128: meta-package has no lib/ folder by design (IncludeBuildOutput=false);
+         NuGet incorrectly warns that net8.0 deps have no matching lib assembly. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- CPM forbids inline Version= on PackageReference; opt out because these
+         refs use $(PackageVersion) which is resolved at pack time, not from
+         Directory.Packages.props. Same pattern as eng/AotProbe. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,17 +53,18 @@
 
   <ItemGroup>
     <!--
-      ExcludeAssets="all"  — don't consume any compile/runtime assets from these packages
-                             (they ship only runtimes/{rid}/native/ content anyway)
-      PrivateAssets="none" — these deps DO appear in the generated nuspec, so consumers
-                             of Zstandard.Native.Runtimes get the per-RID binaries
+      PrivateAssets="none" — all assets flow to consumers; deps appear in the nuspec.
+      ExcludeAssets is intentionally omitted: setting it to "all" causes NuGet's pack
+      task to drop the dep from the generated nuspec entirely, producing an empty
+      meta-package. These packages ship only runtimes/{rid}/native/ binaries (no lib/),
+      so omitting ExcludeAssets is safe — they cannot pollute the compile graph.
     -->
-    <PackageReference Include="Zstandard.Native.win-x64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
-    <PackageReference Include="Zstandard.Native.win-arm64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
-    <PackageReference Include="Zstandard.Native.linux-x64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
-    <PackageReference Include="Zstandard.Native.linux-arm64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
-    <PackageReference Include="Zstandard.Native.osx-x64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
-    <PackageReference Include="Zstandard.Native.osx-arm64" Version="$(PackageVersion)" ExcludeAssets="all" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.win-x64" Version="$(PackageVersion)" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.win-arm64" Version="$(PackageVersion)" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.linux-x64" Version="$(PackageVersion)" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.linux-arm64" Version="$(PackageVersion)" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.osx-x64" Version="$(PackageVersion)" PrivateAssets="none" />
+    <PackageReference Include="Zstandard.Native.osx-arm64" Version="$(PackageVersion)" PrivateAssets="none" />
   </ItemGroup>
 
 </Project>
