@@ -23,6 +23,9 @@
     <EnableSingleFileAnalyzer>false</EnableSingleFileAnalyzer>
     <!-- Override the repo-root icon.png that Directory.Build.props would include -->
     <PackageIcon>icon-runtimes.png</PackageIcon>
+    <!-- NU5128: meta-package has no lib/ folder by design (IncludeBuildOutput=false);
+         NuGet incorrectly warns that net8.0 deps have no matching lib assembly. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
     <!-- CPM forbids inline Version= on PackageReference; opt out because these
          refs use $(PackageVersion) which is resolved at pack time, not from
          Directory.Packages.props. Same pattern as eng/AotProbe. -->
