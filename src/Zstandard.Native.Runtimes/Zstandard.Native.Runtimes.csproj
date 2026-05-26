@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <!-- Remove the generic icon.png added by Directory.Build.props -->
-    <None Remove="$(MSBuildThisFileDirectory)..\..\icon.png" />
+    <None Remove="$(MSBuildThisFileDirectory)..\..\assets\icons\icon.png" />
     <!-- Use the Runtimes-specific icon -->
     <None Include="$(MSBuildThisFileDirectory)..\..\assets\icons\icon-runtimes.png"
           Pack="true" PackagePath="\" Visible="false" />

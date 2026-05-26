@@ -32,7 +32,7 @@
     <PackageTags>zstd;zstandard;compression;native;aot;intrinsics;avx10;sve</PackageTags>
     <Description>Ultra-fast, AOT-safe Zstandard (zstd) wrapper for .NET 8, .NET 9, and .NET 10 with Vector512 / AVX10 / SVE accelerated paths and zero-allocation Span APIs.</Description>
     <PackageReadmeFile Condition="Exists('$(MSBuildThisFileDirectory)README.nuget.md')">README.nuget.md</PackageReadmeFile>
-    <PackageIcon Condition="Exists('$(MSBuildThisFileDirectory)icon.png')">icon.png</PackageIcon>
+    <PackageIcon Condition="Exists('$(MSBuildThisFileDirectory)assets\icons\icon.png')">icon.png</PackageIcon>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
@@ -45,8 +45,8 @@
   <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)README.nuget.md') AND '$(IsPackable)' != 'false'">
     <None Include="$(MSBuildThisFileDirectory)README.nuget.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
-  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)icon.png') AND '$(IsPackable)' != 'false'">
-    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" Visible="false" />
+  <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)assets\icons\icon.png') AND '$(IsPackable)' != 'false'">
+    <None Include="$(MSBuildThisFileDirectory)assets\icons\icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
   <!-- ============================================================ -->
