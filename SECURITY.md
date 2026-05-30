@@ -4,11 +4,12 @@
 
 The following versions of Zstandard.Native receive security updates:
 
-| Version | Supported | End of Support |
-| ------- | --------- | -------------- |
-| 0.x     | :white_check_mark: | Active development (pre-1.0; latest patch only) |
+| Version | Supported | Notes |
+| ------- | --------- | ----- |
+| 1.0.x   | :white_check_mark: | Current stable line — receives all security patches |
+| 0.x     | :x: | Pre-release development line; superseded by 1.0.0 |
 
-Once we hit 1.0.0, the policy will mirror semver: the current `MAJOR.MINOR.x` line plus the previous one.
+The support policy follows semver: the current `MAJOR.MINOR.x` release line plus the immediately preceding one receive security patches. Older lines are unsupported.
 
 ## Reporting a Vulnerability
 

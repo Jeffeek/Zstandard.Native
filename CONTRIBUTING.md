@@ -237,7 +237,7 @@ For the **>2 GiB payload** case, gate the test on `ZSTD_RUN_LARGE_TESTS=1` (earl
 
 - **Branch from `master`** for features. Use short, kebab-cased names: `feat/dict-training`, `fix/resolver-rid-arm64`.
 - **Conventional commit subjects** are appreciated but not enforced.
-- **Releases are cut from `release/v<semver>` branches.** `scripts/release.{sh,ps1}` derives the version automatically. Pushing to `master` produces a `*-preview.<run>` build, pushing to `release/vX.Y.Z` produces a stable release. See [`publish.yml`](.github/workflows/publish.yml).
+- **Release branches** follow the pattern `release/X.Y.x` (e.g. `release/1.0.x`). Helper scripts live in `scripts/Release/Release.{ps1,sh}`. Trigger a release by pushing a `v*` semver tag: `git tag v1.0.0 && git push origin v1.0.0`. The [`release.yml`](.github/workflows/release.yml) workflow picks up any `v*` tag and runs build → test → pack → AOT gate → publish.
 - Don't update `<VersionPrefix>` in `Directory.Build.props` as part of a feature PR. Cut a release branch when ready.
 
 ---
