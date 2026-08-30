@@ -22,9 +22,14 @@ namespace Zstandard.Native;
 /// </remarks>
 public static class ZstdCompressor
 {
-    private const int MinCompressionLevel = 1;
-    private const int MaxCompressionLevel = 22;
-    private const int DefaultCompressionLevel = 3;
+    /// <summary>Minimum supported compression level (1).</summary>
+    public const int MinCompressionLevel = 1;
+
+    /// <summary>Maximum supported compression level (22 — equivalent to <c>ZSTD_maxCLevel()</c>).</summary>
+    public const int MaxCompressionLevel = 22;
+
+    /// <summary>Default compression level used by libzstd when no level is specified (3).</summary>
+    public const int DefaultCompressionLevel = 3;
 
     /// <summary>
     /// Returns the worst-case compressed size for an input of <paramref name="srcSize"/> bytes.

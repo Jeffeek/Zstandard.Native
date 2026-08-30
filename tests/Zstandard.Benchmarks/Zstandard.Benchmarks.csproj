@@ -13,6 +13,9 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
     <PackageReference Include="ZstdSharp.Port" />
+    <PackageReference Include="ZstdNet" />
+    <PackageReference Include="ImpromptuNinjas.ZStd" />
+    <PackageReference Include="BenchmarkDotNetVisualizer" />
   </ItemGroup>
 
   <ItemGroup>

@@ -4,20 +4,32 @@ using Zstandard.Native;
 namespace Zstandard.Benchmarks;
 
 /// <summary>
-/// Head-to-head: Zstandard.Native (libzstd P/Invoke, AOT-safe) vs ZstdSharp.Port
-/// (managed translation). Reports time, allocations, and computed MB/s.
+/// Zstandard.Native throughput benchmarks — one-shot and streaming, JIT and NativeAOT
+/// .NET 10.0. Covers the full range of payload sizes and compression levels.
 /// </summary>
-[
-    Config(typeof(BenchConfig)),
-    MemoryDiagnoser,
-    GcServer(true),
-    // ReSharper disable once RedundantArgumentDefaultValue
-    GcConcurrent(true)
-]
+/// <remarks>
+/// <para>
+/// One-shot methods use the static <see cref="ZstdCompressor"/> API, which creates a
+/// fresh native <c>ZSTD_CCtx</c> / <c>ZSTD_DCtx</c> per call.
+/// </para>
+/// <para>
+/// Streaming methods use a single <see cref="ZstdStreamCompressor"/> instance created
+/// in <see cref="Setup"/> and reused across iterations via <c>Reset()</c>, eliminating
+/// per-call context allocation.
+/// </para>
+/// </remarks>
+[Config(typeof(BenchConfig)), MemoryDiagnoser, GcServer(value: true), GcConcurrent(value: true)]
 // ReSharper disable once ClassCanBeSealed.Global
 public class CompressionBenchmarks
 {
-    [Params(4 * 1024, 64 * 1024, 1 * 1024 * 1024, 16 * 1024 * 1024)]
+    [Params(
+            4 * 1024, // 4 KB
+            64 * 1024, // 64 KB
+            1 * 1024 * 1024, // 1 MB
+            16 * 1024 * 1024, // 16 MB,
+            64 * 1024 * 1024 // 64 MB
+        )
+    ]
     // ReSharper disable once UnusedAutoPropertyAccessor.Global
     public int PayloadSize { get; set; }
 
@@ -27,58 +39,54 @@ public class CompressionBenchmarks
 
     private byte[] _payload = [];
     private byte[] _compressed = [];
-    // ReSharper disable InconsistentNaming
-    private byte[] _native_dst = [];
-    private byte[] _native_decompressed = [];
-    private byte[] _sharp_dst = [];
-    private byte[] _sharp_decompressed = [];
-    // ReSharper restore InconsistentNaming
+    private byte[] _compressDst = [];
+    private byte[] _decompressDst = [];
+    private ZstdStreamCompressor? _streamCompressor;
 
     [GlobalSetup]
     public void Setup()
     {
-        // Deterministic, semi-compressible payload — a mix of zeros and pseudo-random
-        // bytes so the codec actually has something to chew on.
         _payload = new byte[PayloadSize];
-        var rng = new Random(42);
+        var rng = new Random();
         rng.NextBytes(_payload);
         for (var i = 0; i < _payload.Length; i += 32)
             _payload[i] = 0;
 
-        var bound = ZstdCompressor.GetCompressBound(PayloadSize);
-        _native_dst = new byte[bound];
-        _sharp_dst = new byte[bound];
-        _native_decompressed = new byte[PayloadSize];
-        _sharp_decompressed = new byte[PayloadSize];
+        _compressDst = new byte[ZstdCompressor.GetCompressBound(PayloadSize)];
+        _decompressDst = new byte[PayloadSize];
 
-        // Prime the compressed buffer for decompress benchmarks.
-        var written = ZstdCompressor.Compress(_payload, _native_dst, Level);
-        _compressed = _native_dst.AsSpan(0, written).ToArray();
+        var written = ZstdCompressor.Compress(_payload, _compressDst, Level);
+        _compressed = [.. _compressDst[..written]];
+
+        _streamCompressor = new ZstdStreamCompressor(compressionLevel: Level);
     }
 
-    // ---------- Compress ----------
+    [GlobalCleanup]
+    public void Cleanup() => _streamCompressor?.Dispose();
 
-    [Benchmark(Baseline = true, Description = "Native.Compress")]
-    public int NativeCompress() =>
-        ZstdCompressor.Compress(_payload, _native_dst, Level);
+    // ---- One-shot ----
 
-    [Benchmark(Description = "ZstdSharp.Compress")]
-    public int SharpCompress()
+    [Benchmark(Baseline = true, Description = "OneShot.Compress")]
+    public int OneShotCompress() =>
+        ZstdCompressor.Compress(_payload, _compressDst, Level);
+
+    [Benchmark(Description = "OneShot.Decompress")]
+    public int OneShotDecompress() =>
+        ZstdCompressor.Decompress(_compressed, _decompressDst);
+
+    // ---- Streaming (context reuse) ----
+
+    [Benchmark(Description = "Stream.Compress")]
+    public int StreamCompress()
     {
-        using var compressor = new ZstdSharp.Compressor(Level);
-        return compressor.Wrap(_payload, _sharp_dst);
+        _streamCompressor!.Reset();
+        return _streamCompressor.Compress(_payload, _compressDst, ZstdEndDirective.End).BytesWritten;
     }
 
-    // ---------- Decompress ----------
-
-    [Benchmark(Description = "Native.Decompress")]
-    public int NativeDecompress() =>
-        ZstdCompressor.Decompress(_compressed, _native_decompressed);
-
-    [Benchmark(Description = "ZstdSharp.Decompress")]
-    public int SharpDecompress()
+    [Benchmark(Description = "Stream.Compress (fresh context)")]
+    public int StreamCompressFresh()
     {
-        using var decompressor = new ZstdSharp.Decompressor();
-        return decompressor.Unwrap(_compressed, _sharp_decompressed);
+        using var c = new ZstdStreamCompressor(compressionLevel: Level);
+        return c.Compress(_payload, _compressDst, ZstdEndDirective.End).BytesWritten;
     }
 }
